@@ -427,7 +427,7 @@ static GLenum SetupRenderer(unsigned int primitiveType, unsigned int vertexForma
 static uint32_t callId = 0;
 
 #define HACKY_IMPORT_BEGIN(_name) \
-  static void Hook_ ## _name (void* uc, uint64_t address, uint32_t size, void* user_data); \
+  static void Hook_ ## _name (void* uc, uint64_t address, uint32_t _size, void* user_data); \
   __attribute__((constructor)) static void Register_ ## _name () { \
     const char* name = #_name; \
     printf("Registering hook for '%s'\n", name); \
@@ -438,7 +438,7 @@ static uint32_t callId = 0;
     export->callback = Hook_ ## _name; \
     exportCount++; \
   } \
-  static void Hook_ ## _name (void* uc, uint64_t address, uint32_t size, void* user_data) { \
+  static void Hook_ ## _name (void* uc, uint64_t _address, uint32_t _size, void* _user_data) { \
     bool silent = false; \
     \
     int eip; \
@@ -465,7 +465,7 @@ static uint32_t callId = 0;
 #define HACKY_IMPORT_END() \
     if (!silent) { \
       hacky_printf("Stack at 0x%" PRIX32 "; returning EAX: 0x%08" PRIX32 "\n", stackAddress, eax); \
-      hacky_printf("%7" PRIu32 " Emulation at %X ('%s') from %X\n\n", callId, eip, (char*)user_data, returnAddress); \
+      hacky_printf("%7" PRIu32 " Emulation at %X ('%s') from %X\n\n", callId, eip, (char*)_user_data, returnAddress); \
     } \
     callId++; \
     \
