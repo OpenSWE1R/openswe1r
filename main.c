@@ -3062,9 +3062,84 @@ HACKY_COM_BEGIN(IA3dSource, 59)
 HACKY_COM_END()
 
 
+static void UcMallocHook(void* uc, uint64_t address, uint32_t size, void* user_data) {
+  int eip;
+  uc_reg_read(uc, UC_X86_REG_EIP, &eip);
+  int esp;
+  uc_reg_read(uc, UC_X86_REG_ESP, &esp);
+  int eax;
+  uc_reg_read(uc, UC_X86_REG_EAX, &eax);
+  
+  Address stackAddress = esp;
+  uint32_t* stack = (uint32_t*)Memory(stackAddress);
+
+  // Pop the return address
+  Address returnAddress = stack[0];
+  printf("Return at 0x%" PRIX32 "\n", returnAddress);
+
+  eax = Allocate(stack[1]);
+  printf("malloc(%d) -> 0x%08X\n", stack[1], eax);
+
+  uc_reg_write(uc, UC_X86_REG_EAX, &eax);
+  eip = returnAddress;
+  uc_reg_write(uc, UC_X86_REG_EIP, &eip);
+  esp += 4;
+  uc_reg_write(uc, UC_X86_REG_ESP, &esp);
+}
+
+static void UcFreeHook(void* uc, uint64_t address, uint32_t size, void* user_data) {
+  int eip;
+  uc_reg_read(uc, UC_X86_REG_EIP, &eip);
+  int esp;
+  uc_reg_read(uc, UC_X86_REG_ESP, &esp);
+  int eax;
+  uc_reg_read(uc, UC_X86_REG_EAX, &eax);
+  
+  Address stackAddress = esp;
+  uint32_t* stack = (uint32_t*)Memory(stackAddress);
+
+  // Pop the return address
+  Address returnAddress = stack[0];
+  printf("Return at 0x%" PRIX32 "\n", returnAddress);
+
+  printf("free(0x%08X)\n", stack[1]);
+  Free(stack[1]);
+
+  eax = 0;
+  uc_reg_write(uc, UC_X86_REG_EAX, &eax);
+  eip = returnAddress;
+  uc_reg_write(uc, UC_X86_REG_EIP, &eip);
+  esp += 4;
+  uc_reg_write(uc, UC_X86_REG_ESP, &esp);
+}
 
 
+// Some TGA loading function
 
+static void UcTGAHook(void* uc, uint64_t address, uint32_t size, void* user_data) {
+  int eip;
+  uc_reg_read(uc, UC_X86_REG_EIP, &eip);
+  int esp;
+  uc_reg_read(uc, UC_X86_REG_ESP, &esp);
+  int eax;
+  uc_reg_read(uc, UC_X86_REG_EAX, &eax);
+  
+  Address stackAddress = esp;
+  uint32_t* stack = (uint32_t*)Memory(stackAddress);
+
+  // Pop the return address
+  Address returnAddress = stack[0];
+  printf("Return at 0x%" PRIX32 "\n", returnAddress);
+
+  //int __cdecl sub_48A230(int a1, char *a2, _DWORD *a3, _DWORD *a4)
+  printf("\n\n\n[ 48A230 ] TGAHook(0x%08X, 0x%08X, 0x%08X, 0x%08X)\n\n\n\n", stack[1], stack[2], stack[3], stack[4]);
+
+  // Emulate instruction we overwrote
+  eax = stack[1];
+  uc_reg_write(uc, UC_X86_REG_EAX, &eax);
+  eip = 0x48a234;
+  uc_reg_write(uc, UC_X86_REG_EIP, &eip);
+}
 
 
 
@@ -3441,6 +3516,20 @@ int main(int argc, char* argv[]) {
 *(uint8_t*)Memory(0x4A16F0) = 0xC3; // _unlock
 *(uint8_t*)Memory(0x4A1710) = 0xC3; // _lock_file
 *(uint8_t*)Memory(0x4A1780) = 0xC3; // _unlock_file
+
+  // These do something bad internally
+  CreateBreakpoint(0x49f270, UcMallocHook, "<malloc>");
+  CreateBreakpoint(0x49f200, UcFreeHook, "<free>");
+
+  // This function used to crash with SIGSEGV, so I wanted to peek at the parameters.
+  CreateBreakpoint(0x48A230, UcTGAHook, "<TGAHook>");
+
+
+#if 0
+uint8_t* patch = Memory(0x417010); // _get_fname:
+*patch++ = 0x31; *patch++ = 0xC0;  //   xor eax eax
+*patch++ = 0xC3;                   //   ret
+#endif
 
 *(uint8_t*)Memory(0x487d71) = 0x75; // Invert the check for eax after "DirectDrawEnumerate" (ours will always fail)
 *(uint8_t*)Memory(0x488ce2) = 0x75; // Invert the check for eax after "EnumDisplayModes" (ours will always fail)
