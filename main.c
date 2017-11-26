@@ -1863,7 +1863,7 @@ HACKY_COM_BEGIN(IDirectDraw4, 6)
   } else {
     //FIXME: only added to catch bugs, null pointer should work
     surface->texture = CreateInterface("invalid", 200);;
-    assert(false);
+    //assert(false);
   }
 
   eax = 0; // FIXME: No idea what this expects to return..
