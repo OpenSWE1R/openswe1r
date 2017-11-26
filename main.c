@@ -717,6 +717,23 @@ HACKY_IMPORT_END()
 
 // Actual revolt.exe starts here, anything until this point was CRT-Startup / pre-WinMain:
 
+HACKY_IMPORT_BEGIN(GetKeyNameTextA)
+  hacky_printf("lParam 0x%" PRIX32 "\n", stack[1]);
+  hacky_printf("lpString 0x%" PRIX32 " ('%s')\n", stack[2], (char*)Memory(stack[2]));
+  hacky_printf("cchSize %" PRIu32 "\n", stack[3]);
+  eax = snprintf(Memory(stack[2]), stack[3], "k%" PRIu32, stack[1]); // Cancel was selected
+  esp += 3 * 4;
+HACKY_IMPORT_END()
+
+HACKY_IMPORT_BEGIN(GetComputerNameA)
+  hacky_printf("lpBuffer 0x%" PRIX32 "\n", stack[1]);
+  uint32_t* size = (uint32_t*)Memory(stack[2]);
+  hacky_printf("lpnSize 0x%" PRIX32 " (%" PRIu32 ")\n", stack[2], *size);
+  *size = snprintf(Memory(stack[1]), *size, "ComputerName"); // Cancel was selected
+  eax = 1; // nonzero if succeeds
+  esp += 2 * 4;
+HACKY_IMPORT_END()
+
 HACKY_IMPORT_BEGIN(timeGetTime)
   //FIXME: Avoid overflow?
   eax = GetTimerValue();
