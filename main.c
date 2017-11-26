@@ -1853,7 +1853,7 @@ HACKY_COM_BEGIN(IDirectDraw4, 6)
 
 
   memcpy(&surface->desc, desc, sizeof(DDSURFACEDESC2));
-  surface->desc.lPitch = surface->desc.dwWidth * 2;
+  surface->desc.lPitch = surface->desc.dwWidth * desc->ddpfPixelFormat.dwRGBBitCount / 8;
 
   if (desc->ddsCaps.dwCaps & DDSCAPS_TEXTURE) {
     // FIXME: Delay this until the interface is queried the first time?!
@@ -2171,7 +2171,7 @@ HACKY_COM_BEGIN(IDirectDrawSurface4, 25)
   DDSURFACEDESC2* desc = Memory(stack[3]);
   memcpy(desc, &this->desc, sizeof(DDSURFACEDESC2));
   
-  printf("%d x %d (pitch: %d) at 0x%08X\n", desc->dwWidth, desc->dwHeight, desc->lPitch, desc->lpSurface);
+  printf("%d x %d (pitch: %d); bpp = %d; at 0x%08X\n", desc->dwWidth, desc->dwHeight, desc->lPitch, desc->ddpfPixelFormat.dwRGBBitCount, desc->lpSurface);
 #if 0
   desc->dwWidth = 16;
   desc->dwHeight = 16;
@@ -2212,7 +2212,11 @@ HACKY_COM_BEGIN(IDirectDrawSurface4, 32)
   glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
   glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
   glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
-  glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, desc->dwWidth, desc->dwHeight, 0, GL_RGBA, GL_UNSIGNED_SHORT_1_5_5_5_REV, Memory(desc->lpSurface));
+  if (desc->ddpfPixelFormat.dwRGBBitCount == 32) {
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, desc->dwWidth, desc->dwHeight, 0, GL_RGBA, GL_UNSIGNED_INT_8_8_8_8_REV, Memory(desc->lpSurface));
+  } else {
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, desc->dwWidth, desc->dwHeight, 0, GL_RGBA, GL_UNSIGNED_SHORT_1_5_5_5_REV, Memory(desc->lpSurface));
+  }
   glBindTexture(GL_TEXTURE_2D, previousTexture);
 
   Free(desc->lpSurface);
@@ -2451,10 +2455,10 @@ HACKY_COM_BEGIN(IDirect3DDevice3, 8)
       format->dwSize = sizeof(DDPIXELFORMAT);
       format->dwFlags = DDPF_RGB | DDPF_ALPHAPIXELS;
       format->dwRGBBitCount = 16;
-      format->dwRBitMask = 0x0F00;
-      format->dwGBitMask = 0x00F0;
-      format->dwBBitMask = 0x000F;
-      format->dwRGBAlphaBitMask = 0xF000;
+      format->dwRBitMask = 0x7C00;
+      format->dwGBitMask = 0x03E0;
+      format->dwBBitMask = 0x001F;
+      format->dwRGBAlphaBitMask = 0x8000;
 
       esp -= 4;
       *(uint32_t*)Memory(esp) = b; // user pointer
@@ -2464,18 +2468,18 @@ HACKY_COM_BEGIN(IDirect3DDevice3, 8)
       esp -= 4;
       *(uint32_t*)Memory(esp) = returnAddress; // Return where this was supposed to return to
     }
-#if 0
+#if 1
     {
       Address formatAddress = Allocate(sizeof(DDPIXELFORMAT));
       DDPIXELFORMAT* format = (DDPIXELFORMAT*)Memory(formatAddress);
       memset(format, 0x00, sizeof(DDPIXELFORMAT));
       format->dwSize = sizeof(DDPIXELFORMAT);
       format->dwFlags = DDPF_RGB | DDPF_ALPHAPIXELS;
-      format->dwRGBBitCount = 16;
-      format->dwRBitMask = 0x0F00;
-      format->dwGBitMask = 0x00F0;
-      format->dwBBitMask = 0x000F;
-      format->dwRGBAlphaBitMask = 0xF000;
+      format->dwRGBBitCount = 32;
+      format->dwRBitMask = 0x00FF0000;
+      format->dwGBitMask = 0x0000FF00;
+      format->dwBBitMask = 0x000000FF;
+      format->dwRGBAlphaBitMask = 0xFF000000;
 
       esp -= 4;
       *(uint32_t*)Memory(esp) = b; // user pointer
