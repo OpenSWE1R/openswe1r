@@ -12,6 +12,7 @@
 #else
 #include <threads.h>
 #endif
+#include <malloc.h>
 
 #include "common.h"
 #include "descriptor.h"
@@ -21,7 +22,7 @@
 //FIXME: These are hacks (register when mapping instead!)!
 extern Exe* exe;
 uint8_t* stack = NULL;
-uint8_t* heap;
+uint8_t* heap = NULL;
 
 static uint32_t gdtAddress = 0xA0000000; //FIXME: Search somehow?!
 static uint32_t gdtSize = 31 * sizeof(SegmentDescriptor); //FIXME: 31 came from the UC sample, why?!
@@ -286,9 +287,9 @@ void InitializeEmulation() {
   }
 #endif
 
-#if 1
+#if 0
   // Setup segments
-  SegmentDescriptor* gdtEntries = (SegmentDescriptor*)malloc(gdtSize);
+  SegmentDescriptor* gdtEntries = (SegmentDescriptor*)memalign(ucAlignment, AlignUp(gdtSize, ucAlignment));
   memset(gdtEntries, 0x00, gdtSize);
 
   gdtEntries[14] = CreateDescriptor(0x00000000, 0xFFFFF000, true);  // CS
@@ -338,12 +339,12 @@ void InitializeEmulation() {
 #endif
 
   // Map and set TLS (not exposed via flat memory)
-  uint8_t* tls = malloc(tlsSize);
+  uint8_t* tls = memalign(ucAlignment, tlsSize);
   memset(tls, 0xBB, tlsSize);
   err = uc_mem_map_ptr(uc, tlsAddress, tlsSize, UC_PROT_WRITE | UC_PROT_READ, tls);
 
   // Allocate a heap
-  heap = malloc(heapSize);
+  heap = memalign(ucAlignment, heapSize);
   memset(heap, 0xAA, heapSize);
   MapMemory(heap, heapAddress, heapSize, true, true, true);
 }
@@ -370,7 +371,7 @@ unsigned int CreateEmulatedThread(uint32_t eip) {
   // Map and set stack
   //FIXME: Use requested size
   if (stack == NULL) {
-    stack = malloc(stackSize);
+    stack = memalign(ucAlignment, stackSize);
     MapMemory(stack, stackAddress, stackSize, true, true, false);
   }
   static int threadId = 0;

@@ -12,9 +12,9 @@ find_package(SDL2 REQUIRED)
 find_package(DevIL REQUIRED)
 
 include_directories(SYSTEM
-	${LIBUNICORN_INCLUDE_DIR}
-	${OPENGL_INCLUDE_DIR}
-	${GLEW_INCLUDE_DIRS}
+  ${LIBUNICORN_INCLUDE_DIR}
+  ${OPENGL_INCLUDE_DIR}
+  ${GLEW_INCLUDE_DIRS}
   ${SDL2_INCLUDE_DIR}
   ${IL_INCLUDE_DIR}
 )
@@ -25,15 +25,27 @@ add_executable(openswe1r
   export.c
   shader.c
 
+  uc_kvm.c
+
   dll/kernel32.c
 
   com/dplay.c
 )
 
+if(True)
+  target_compile_definitions(openswe1r PUBLIC -DUC_KVM)
+  target_sources(openswe1r PUBLIC
+    uc_kvm.c
+  )
+else()
+  target_link_libraries(openswe1r
+    ${LIBUNICORN_LIBRARY}
+  )
+endif()
+
 target_link_libraries(openswe1r
-	${LIBUNICORN_LIBRARY}
-	${OPENGL_LIBRARIES}
-	${GLEW_LIBRARIES}
+  ${OPENGL_LIBRARIES}
+  ${GLEW_LIBRARIES}
   ${SDL2_LIBRARY}
   ${IL_LIBRARIES}
   ${ILU_LIBRARIES}

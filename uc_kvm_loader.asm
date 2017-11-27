@@ -1,0 +1,54 @@
+; Copyright (c) 2011 Scott Mansell <phiren@gmail.com>
+; Licensed under the MIT license
+; Refer to the included LICENCE file.
+
+; Build using: nasm uc_kvm_loader.asm -o build/uc_kvm_loader
+; Inspect using (16 bit): objdump -D -bbinary -mi8086 -Mintel --adjust-vma=0xFFFFF0000 build/uc_kvm_loader 
+; Inspect using (32 bit): objdump -D -bbinary -mi386 -Mintel --adjust-vma=0xFFFFF0000 build/uc_kvm_loader 
+
+org 0xFFFFF000
+
+[bits 32]
+
+halt:
+  hlt
+
+[bits 16]
+
+start:
+  o32 lgdt [cs:gdtr]
+  mov eax, cr0
+  or al, 1
+  mov cr0, eax
+  jmp long 0x8:reload_cs
+
+[bits 32]
+reload_cs:
+  xor eax, eax
+  mov al, 0x10
+  mov ds, eax
+  mov es, eax
+  mov ss, eax
+  out dx,ax
+
+align 16
+gdtr:
+  dw 0x18
+  dd gdt
+
+  
+align 16
+gdt:
+  ;db 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00
+  ;db 0xff, 0xff, 0x00, 0x00, 0x00, 0x9A, 0xCF, 0x00
+  ;db 0xff, 0xff, 0x00, 0x00, 0x00, 0x92, 0xCF, 0x00
+
+  db 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+  db 0xff, 0xff, 0x00, 0x00, 0x00, 0x9b, 0xcf, 0x00
+  db 0xff, 0xff, 0x00, 0x00, 0x00, 0x93, 0xcf, 0x00
+
+[bits 16]
+times 0xFF0-($-$$) db 0x90
+  jmp start
+times 0x1000-($-$$) db 0x90
+
