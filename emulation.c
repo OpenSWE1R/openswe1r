@@ -231,9 +231,64 @@ void* Memory(uint32_t address) {
 
 void CreateBreakpoint(uint32_t address, void* callback, void* user) {
   //FIXME: Loop over imports?!
+#if 0
+#ifdef UC_KVM
+  assert(false);
+#endif
   uc_hook importHook;
   uc_hook_add(uc, &importHook, UC_HOOK_BLOCK /*UC_HOOK_CODE*/, callback, user, address, address);
+#endif
 }
+
+Address CreateOut() {
+  Address code_address = Allocate(2);
+  uint8_t* code = Memory(code_address);
+  *code++ = 0xEE; // OUT DX, AL
+  //FIXME: Are changes to regs even registered here?!
+  *code++ = 0xC3; // End block with RET
+  return code_address;
+}
+
+typedef struct _OutHandler {
+  struct _OutHandler* next;
+  Address address;
+  void(*callback)(void* uc, uint64_t address, uint32_t size, void* user_data);
+  void* user_data;
+} OutHandler;
+OutHandler* outHandlers = NULL;
+
+static void outHookHandler(uc_engine *uc, uint32_t port, int size, uint32_t value, void *user_data) {
+  int eip;
+  uc_reg_read(uc, UC_X86_REG_EIP, &eip);
+
+  OutHandler* outHandler = outHandlers;
+  while(outHandler != NULL) {
+    if (outHandler->address == eip) {
+      outHandler->callback(uc, outHandler->address, 0, outHandler->user_data);
+    }
+    outHandler = outHandler->next;
+  }
+}
+
+void AddOutHandler(Address address, void(*callback)(void* uc, uint64_t address, uint32_t size, void* user_data), void* user_data) {
+  OutHandler* outHandler = malloc(sizeof(OutHandler));
+  outHandler->address = address;
+  outHandler->callback = callback;
+  outHandler->user_data = user_data;
+  outHandler->next = outHandlers;
+  outHandlers = outHandler;
+
+  uc_hook outHook;
+  uc_hook_add(uc, &outHook, UC_HOOK_INSN, outHookHandler, user_data, address, address, UC_X86_INS_OUT);
+
+#if 0
+#ifndef UC_KVM
+  CreateBreakpoint(address, callback, user_data);
+#endif
+#endif
+}
+
+#if 0
 
 //FIXME: Bad to use allocate in this file..?
 Address CreateCallback(void* callback, void* user) {
@@ -253,6 +308,7 @@ Address CreateCallback(void* callback, void* user) {
   return address;
 }
 
+#endif
 
 void InitializeEmulation() {
 
@@ -263,7 +319,7 @@ void InitializeEmulation() {
     printf("Failed on uc_open() with error returned %u: %s\n", err, uc_strerror(err));
   }
 
-#if 1
+#ifndef UC_KVM
   // Add hooks to catch errors
   uc_hook errorHooks[6];
   {
@@ -381,11 +437,11 @@ unsigned int CreateEmulatedThread(uint32_t eip) {
   threads = realloc(threads, ++threadCount * sizeof(ThreadContext));
   ThreadContext* ctx = &threads[threadCount - 1];
   TransferContext(ctx, false); //FIXME: Find safe defaults instead?!
-  PrintContext(ctx);
   ctx->eip = eip;
   ctx->esp = esp;
   ctx->ebp = 0;
   ctx->sleep = 0;
+  PrintContext(ctx);
 }
 
 void SleepThread(uint64_t duration) {
@@ -442,6 +498,12 @@ void RunEmulation() {
 
     if (err) {
       printf("Failed on uc_emu_start() with error returned %u: %s\n", err, uc_strerror(err));
+
+      ThreadContext ctx;
+      TransferContext(&ctx, false);
+      PrintContext(&ctx);
+
+      assert(false);
     }
 
     TransferContext(ctx, false);

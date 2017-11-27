@@ -665,14 +665,21 @@ HACKY_IMPORT_BEGIN(GetProcAddress)
   const char* procName = Memory(lpProcName);
   hacky_printf("hModule 0x%" PRIX32 "\n", stack[1]);
   hacky_printf("lpProcName 0x%" PRIX32 " ('%s')\n", lpProcName, procName);
-  eax = Allocate(1); //FIXME: Get actual address!
 
   Export* export = LookupExportByName(procName);
   if (export == NULL) {
     printf("Export for '%s' could not be found\n", procName);
+    eax = 0;
     assert(false);
   } else {
-    CreateBreakpoint(eax, export->callback, (void*)procName);
+
+    //FIXME: Use existing address for export
+    Address outAddress = CreateOut();
+    AddOutHandler(outAddress, export->callback, (void*)procName);
+    eax = outAddress;
+    printf("Providing at 0x%08X\n", outAddress);
+
+    //CreateBreakpoint(eax, export->callback, (void*)procName);
   }
 
   esp += 2 * 4;
@@ -3360,24 +3367,29 @@ Exe* LoadExe(const char* path) {
         } else
 #endif
         {
-
-          // Let it point at itself so we can hook that address
-          //FIXME: Won't work for variables
-          *symbolAddress = thunkAddress;
-
           Export* export = NULL;
           if (importByNameAddress & 0x80000000) {
             export = LookupExportByOrdinal(name, importByNameAddress & 0x7FFFFFFF);
           } else {
             export = LookupExportByName(label);
           }
+
           if (export == NULL) {
-            CreateBreakpoint(thunkAddress, UnknownImport, (void*)label);
-            printf("missing\n");
+            Address outAddress = CreateOut();
+            AddOutHandler(outAddress, UnknownImport, (void*)label);
+            *symbolAddress = outAddress;
+            printf("missing at 0x%08X\n", outAddress);
             //FIXME: Report error and assert false
           } else {
-            CreateBreakpoint(thunkAddress, export->callback, (void*)label);
-            printf("found\n");
+            if (true) { //(export->isVariable == false) {
+              Address outAddress = CreateOut();
+              AddOutHandler(outAddress, export->callback, (void*)label);
+              *symbolAddress = outAddress;
+              printf("found at 0x%08X\n", outAddress);
+            } else {
+              printf("found.. is variable\n");
+              assert(false);
+            }
           }
 
         }

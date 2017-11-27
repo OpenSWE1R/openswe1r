@@ -2,7 +2,7 @@
 
 #include <stdlib.h>
 #include <assert.h>
-
+#include <inttypes.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <unistd.h>
@@ -32,6 +32,9 @@ typedef struct _cbe {
   void *user_data;
   uint64_t begin;
   uint64_t end;
+  union {
+    int insn; // UC_HOOK_INSN
+  } extra;
 } cbe; // callback entry
 
 typedef struct {
@@ -247,8 +250,10 @@ uc_err uc_close(uc_engine *uc) {
 uc_err uc_hook_add(uc_engine *uc, uc_hook *hh, int type, void *callback, void *user_data, uint64_t begin, uint64_t end, ...) {
   uc_engine_kvm* u = (uc_engine_kvm*)uc;
 
+  // Note that the original UC code also does an & comparison here..
+  //FIXME: This must scan all flags in proper order
+
   cbe* cb = malloc(sizeof(cbe));
-  cb->next = u->cb_head;
   cb->removed = false;
   cb->hook_index = u->hook_index++;
   cb->type = type;
@@ -256,10 +261,42 @@ uc_err uc_hook_add(uc_engine *uc, uc_hook *hh, int type, void *callback, void *u
   cb->user_data = user_data;
   cb->begin = begin;
   cb->end = end;
+
+  if (type & UC_HOOK_INSN) {
+    //FIXME: Assert UC_X86_INS_OUT or UC_X86_INS_IN
+
+    va_list valist;
+
+    va_start(valist, end);
+    int insn = va_arg(valist, int);
+    va_end(valist);
+
+    assert((insn == UC_X86_INS_IN) || (insn == UC_X86_INS_OUT));
+
+    cb->extra.insn = insn;
+  } else if (type & UC_HOOK_MEM_READ_UNMAPPED) {
+    assert(false); //FIXME: This could be done
+  } else if (type & UC_HOOK_MEM_WRITE_UNMAPPED) {
+    assert(false); //FIXME: This could be done
+  } else if (type & UC_HOOK_MEM_FETCH_UNMAPPED) {
+    assert(false); //FIXME: This could be done
+  } else if (type & UC_HOOK_MEM_READ_PROT) {
+    assert(false); //FIXME: This could be done
+  } else if (type & UC_HOOK_MEM_WRITE_PROT) {
+    assert(false); //FIXME: This could be done
+  } else if (type & UC_HOOK_MEM_FETCH_PROT) {
+    assert(false); //FIXME: This could be done
+  } else {
+    printf("Unsupported hook type: %d\n", type);
+    assert(false);
+  }
+
+  // Link hook into list
+  cb->next = u->cb_head;
   u->cb_head = cb;
 
   *hh = cb->hook_index;
-  return 0;
+  return UC_ERR_OK;
 }
 uc_err uc_hook_del(uc_engine *uc, uc_hook hh) {
   uc_engine_kvm* u = (uc_engine_kvm*)uc;
@@ -267,11 +304,11 @@ uc_err uc_hook_del(uc_engine *uc, uc_hook hh) {
   while(cb != NULL) {
     if (cb->hook_index == hh) {
       cb->removed = true;
-      return 0;
+      break;
     }
     cb = cb->next;
   }
-  return -1;
+  return UC_ERR_OK;
 }
 
 uc_err uc_reg_read(uc_engine *uc, int regid, void *value) {
@@ -279,13 +316,19 @@ uc_err uc_reg_read(uc_engine *uc, int regid, void *value) {
 
   assert(u->vcpu_fd != -1);
 
-   struct kvm_regs regs;
+  struct kvm_regs regs;
   struct kvm_sregs sregs;
   int r = ioctl(u->vcpu_fd, KVM_GET_REGS, &regs);
   int s = ioctl(u->vcpu_fd, KVM_GET_SREGS, &sregs);
 
   if (regid == UC_X86_REG_EIP) {
     *(int*)value = regs.rip;
+  } else if (regid == UC_X86_REG_ESP) {
+    *(int*)value = regs.rsp;
+  } else if (regid == UC_X86_REG_EAX) {
+    *(int*)value = regs.rax;
+  } else {
+//    assert(false);
   }
 
   return 0;
@@ -386,16 +429,64 @@ uc_err uc_emu_start(uc_engine *uc, uint64_t begin, uint64_t until, uint64_t time
   int r;
   while (1) {
     ioctl(u->vcpu_fd, KVM_RUN, 0);
-    printRegs(u);
     switch(u->run->exit_reason){
-      case KVM_EXIT_IO:
-        assert(false);
+      case KVM_EXIT_IO: {
+        //FIXME: RIP?
+        int real_eip;
+        int original_eip;
+        uc_reg_read(u, UC_X86_REG_EIP, &original_eip);
+        real_eip = original_eip - 1; //FIXME: Check what instruction did the `OUT`
+        uc_reg_write(uc, UC_X86_REG_EIP, &real_eip);
+        uint64_t address = real_eip;
+        printf("Unhandled IO at 0x%016" PRIX64 "\n", address);
+        cbe* cb = u->cb_head;
+        while(cb != NULL) {
+          //printf("Matching 0x%016" PRIX64 "\n", cb->begin);
+          if ((address >= cb->begin) && (address <= cb->end)) {
+            printf("Matched!\n");
+            uint16_t size = u->run->io.size;
+            uint16_t port = u->run->io.port;
+            uint16_t count = u->run->io.count;
+            assert(count == 1);
+            if ((u->run->io.direction == KVM_EXIT_IO_OUT) && (cb->extra.insn == UC_X86_INS_OUT)) {
+              printf("Doing callback!\n");
+              int value;
+              if (size == 1) {
+                value = *(uint8_t*)((uintptr_t)u->run + u->run->io.data_offset);
+              } else {
+                assert(false);
+              }
+              void(*callback)(uc_engine *uc, uint32_t port, int size, uint32_t value, void *user_data) = cb->callback;
+              callback(uc, port, size, value, cb->user_data);
+            } else if ((u->run->io.direction == KVM_EXIT_IO_IN) && (cb->extra.insn == UC_X86_INS_IN)) {
+              int(*callback)(uc_engine*) = cb->callback;
+              assert(false);
+              while(1);
+              int value = callback(uc);
+              //FIXME: writeback value
+            } else {
+              assert(false);
+            }
+          }
+          cb = cb->next;
+        }
+        // Check if the callback changed EIP, if not, swap back
+        int eip;
+        uc_reg_read(u, UC_X86_REG_EIP, &eip);
+        if (eip == real_eip) {
+          uc_reg_write(u, UC_X86_REG_EIP, &original_eip);
+          assert(false);
+        } else {
+          printf("EIP switched from 0x%08X to 0x%08X\n", real_eip, eip);
+        }
         break;
+      }
       case KVM_EXIT_HLT:
         printf("halted\n");
         printRegs(u);
         return -4;
       case KVM_EXIT_MMIO:
+        printRegs(u);
         printf("Error accessing 0x%08X\n", u->run->mmio.phys_addr);
         assert(false);
         break;
