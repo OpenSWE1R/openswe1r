@@ -25,8 +25,6 @@ add_executable(openswe1r
   export.c
   shader.c
 
-  uc_kvm.c
-
   dll/kernel32.c
 
   com/dplay.c

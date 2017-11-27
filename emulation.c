@@ -287,7 +287,7 @@ void InitializeEmulation() {
   }
 #endif
 
-#if 0
+#ifndef UC_KVM
   // Setup segments
   SegmentDescriptor* gdtEntries = (SegmentDescriptor*)memalign(ucAlignment, AlignUp(gdtSize, ucAlignment));
   memset(gdtEntries, 0x00, gdtSize);
