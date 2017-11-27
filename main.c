@@ -2996,6 +2996,14 @@ HACKY_COM_BEGIN(IA3d4, 11)
   esp += 2 * 4;
 HACKY_COM_END()
 
+// IA3d4 -> STDMETHOD(Flush)						(THIS) PURE; // 13
+HACKY_COM_BEGIN(IA3d4, 13)
+  hacky_printf("Flush\n");
+  hacky_printf("p 0x%" PRIX32 "\n", stack[1]);
+  eax = 0;
+  esp += 1 * 4;
+HACKY_COM_END()
+
 // IA3d4 -> STDMETHOD(Init)							(THIS_ LPGUID, DWORD, DWORD) PURE; // 15
 HACKY_COM_BEGIN(IA3d4, 15)
   hacky_printf("Init\n");
@@ -3087,6 +3095,15 @@ HACKY_COM_END()
 // IA3d4 -> STDMETHOD(SetDistanceModelScale)		(THIS_ A3DVAL) PURE; // 36
 HACKY_COM_BEGIN(IA3d4, 36)
   hacky_printf("SetDistanceModelScale\n");
+  hacky_printf("p 0x%" PRIX32 "\n", stack[1]);
+  hacky_printf("a 0x%" PRIX32 "\n", stack[2]);
+  eax = 0;
+  esp += 2 * 4;
+HACKY_COM_END()
+
+// IA3d4 -> STDMETHOD(SetEq)						(THIS_ A3DVAL) PURE; // 38
+HACKY_COM_BEGIN(IA3d4, 38)
+  hacky_printf("SetEq\n");
   hacky_printf("p 0x%" PRIX32 "\n", stack[1]);
   hacky_printf("a 0x%" PRIX32 "\n", stack[2]);
   eax = 0;
