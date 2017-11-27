@@ -376,6 +376,8 @@ static void LoadVertices(unsigned int vertexFormat, Address address, unsigned in
   glBufferData(GL_ARRAY_BUFFER, count * stride, Memory(address), GL_STREAM_DRAW);
 }
 
+float projectionMatrix[16];
+
 static GLenum SetupRenderer(unsigned int primitiveType, unsigned int vertexFormat) {
   unsigned int texCount = ((vertexFormat & 0xF00) >> 8);
   GLsizei stride = 4 * 4 + 4 + 4 + texCount * 8;
@@ -409,6 +411,7 @@ static GLenum SetupRenderer(unsigned int primitiveType, unsigned int vertexForma
   }
 
   glUniform1i(glGetUniformLocation(program, "tex0"), 0);
+  glUniformMatrix4fv(glGetUniformLocation(program, "projectionMatrix"), 1, GL_FALSE, projectionMatrix);
 
 #if 1
   // Hack to disable texture if tex0 is used - doesn't work?!
@@ -2591,6 +2594,7 @@ HACKY_COM_BEGIN(IDirect3DDevice3, 25)
   float* m = Memory(stack[3]);
   switch(a) {
     case 3: // Projection
+      memcpy(projectionMatrix, m, 4 * 4 * sizeof(float));
       break;
     default:
       printf("Unknown matrix %d\n", a);

@@ -4,6 +4,8 @@
 static const char* VertexShader1Texture =
 "#version 330\n"
 "\n"
+"uniform mat4 projectionMatrix;\n"
+"\n"
 "in vec4 positionIn;\n"
 "in vec4 diffuseIn;\n"
 "in vec4 specularIn;\n"
@@ -14,7 +16,8 @@ static const char* VertexShader1Texture =
 "out vec2 uv0;\n"
 "\n"
 "void main() {\n"
-"  vec3 p = positionIn.xyz /* positionIn.w */;\n"
+"  vec4 p = projectionMatrix * vec4(positionIn.xyz, 1.0); /* positionIn.w */;\n"
+"  p /= p.w;\n"
 "  gl_Position = vec4(p.xy / vec2(640.0, -480.0) * 2.0 + vec2(-1.0, 1.0), p.z, 1.0);\n"
 "  diffuse = diffuseIn.bgra;\n"
 "  specular = specularIn.bgra;\n"
