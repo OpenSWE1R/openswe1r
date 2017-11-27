@@ -717,6 +717,16 @@ HACKY_IMPORT_END()
 
 // Actual revolt.exe starts here, anything until this point was CRT-Startup / pre-WinMain:
 
+HACKY_IMPORT_BEGIN(GetCursorPos)
+  hacky_printf("lpPoint 0x%" PRIX32 "\n", stack[1]);
+  int32_t* point = (int32_t*)Memory(stack[1]);
+  point[0] = 100;
+  point[1] = 100;
+  eax = 1; // nonzero if succeeds
+  esp += 1 * 4;
+HACKY_IMPORT_END()
+
+
 HACKY_IMPORT_BEGIN(GetKeyNameTextA)
   hacky_printf("lParam 0x%" PRIX32 "\n", stack[1]);
   hacky_printf("lpString 0x%" PRIX32 " ('%s')\n", stack[2], (char*)Memory(stack[2]));
