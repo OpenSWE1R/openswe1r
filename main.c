@@ -2572,6 +2572,32 @@ HACKY_COM_BEGIN(IDirect3DDevice3, 22)
   esp += 3 * 4;
 HACKY_COM_END()
 
+// IDirect3DDevice3 -> STDMETHOD(SetTransform)(THIS_ D3DTRANSFORMSTATETYPE,LPD3DMATRIX) PURE; // 25
+HACKY_COM_BEGIN(IDirect3DDevice3, 25)
+  hacky_printf("p 0x%" PRIX32 "\n", stack[1]);
+  hacky_printf("a 0x%" PRIX32 "\n", stack[2]);
+  hacky_printf("b 0x%" PRIX32 "\n", stack[3]);
+  uint32_t a = stack[2];
+  float* m = Memory(stack[3]);
+  switch(a) {
+    case 3: // Projection
+      break;
+    default:
+      printf("Unknown matrix %d\n", a);
+      //FIXME: assert(false) once this runs faster
+      break;
+  }
+  printf("Matrix %d:\n", a);
+  printf("  %f\t%f\t%f\t%f\n", m[ 0], m[ 1], m[ 2], m[ 3]);
+  printf("  %f\t%f\t%f\t%f\n", m[ 4], m[ 5], m[ 6], m[ 7]);
+  printf("  %f\t%f\t%f\t%f\n", m[ 8], m[ 9], m[10], m[11]);
+  printf("  %f\t%f\t%f\t%f\n", m[12], m[13], m[14], m[15]);
+
+  eax = 0; // FIXME: No idea what this expects to return..
+  esp += 3 * 4;
+HACKY_COM_END()
+
+
 // IDirect3DDevice3 -> STDMETHOD(DrawPrimitive)(THIS_ D3DPRIMITIVETYPE,DWORD,LPVOID,DWORD,DWORD) PURE; // 28
 HACKY_COM_BEGIN(IDirect3DDevice3, 28)
   hacky_printf("p 0x%" PRIX32 "\n", stack[1]);
