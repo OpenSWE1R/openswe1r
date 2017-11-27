@@ -40,6 +40,7 @@ static inline int hacky_printf(const char* fmt, ...) {
 typedef struct {
   const char* name;
   void(*callback)(void*, uint64_t, uint32_t, void*);
+  Address address;
 } Export;
 
 unsigned int exportCount = 0;
@@ -96,13 +97,21 @@ Address CreateInterface(const char* name, unsigned int slotCount) {
     sprintf(slotName, "%s__%d", name, i);
     Export* export = LookupExportByName(slotName);
 
-    Address outAddress = CreateOut();
+    Address outAddress;
     if (export != NULL) {
 
-      AddOutHandler(outAddress, export->callback, (void*)slotName);
+      if (export->address == 0) {
+        outAddress = CreateOut();
+        AddOutHandler(outAddress, export->callback, (void*)slotName);
+        export->address = outAddress;
+      } else {
+        outAddress = export->address;
+      }
 
       //CreateBreakpoint(interfaceAddress + i * 4, export->callback, slotName);
     } else {
+
+      Address outAddress = CreateOut();
       AddOutHandler(outAddress, UnknownImport, (void*)slotName);
 
       //CreateBreakpoint(interfaceAddress + i * 4, UnknownImport, slotName);
@@ -448,6 +457,7 @@ static uint32_t callId = 0;
     export->name = malloc(strlen(name) + 1); \
     strcpy((char*)export->name, name); \
     export->callback = Hook_ ## _name; \
+    export->address = 0; \
     exportCount++; \
   } \
   static void Hook_ ## _name (void* uc, uint64_t _address, uint32_t _size, void* _user_data) { \
