@@ -758,6 +758,12 @@ HACKY_IMPORT_BEGIN(GetCursorPos)
   esp += 1 * 4;
 HACKY_IMPORT_END()
 
+HACKY_IMPORT_BEGIN(SetCursorPos)
+  hacky_printf("x %" PRIu32 "\n", stack[1]);
+  hacky_printf("y %" PRIu32 "\n", stack[2]);
+  eax = 1; // nonzero if succeeds
+  esp += 2 * 4;
+HACKY_IMPORT_END()
 
 HACKY_IMPORT_BEGIN(GetKeyNameTextA)
   hacky_printf("lParam 0x%" PRIX32 "\n", stack[1]);
