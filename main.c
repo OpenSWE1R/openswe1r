@@ -1957,9 +1957,10 @@ HACKY_COM_BEGIN(IDirectDraw4, 6)
     Direct3DTexture2* texture = (Direct3DTexture2*)Memory(surface->texture);
     texture->surface = surfaceAddress;
     glGenTextures(1, &texture->handle);
+    printf("GL handle is %d\n", texture->handle);
   } else {
     //FIXME: only added to catch bugs, null pointer should work
-    surface->texture = CreateInterface("invalid", 200);;
+    surface->texture = CreateInterface("invalid", 200);
     //assert(false);
   }
 
