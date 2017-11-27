@@ -1925,7 +1925,7 @@ HACKY_COM_BEGIN(IDirectDraw4, 6)
   hacky_printf("b 0x%" PRIX32 "\n", stack[3]);
   hacky_printf("c 0x%" PRIX32 "\n", stack[4]);
 
-  Address surfaceAddress = CreateInterface("IDirectDrawSurface4", 200);
+  Address surfaceAddress = CreateInterface("IDirectDrawSurface4", 50);
   DirectDrawSurface4* surface = (DirectDrawSurface4*)Memory(surfaceAddress);
 
   *(Address*)Memory(stack[3]) = surfaceAddress;
@@ -1953,7 +1953,7 @@ HACKY_COM_BEGIN(IDirectDraw4, 6)
 
   if (desc->ddsCaps.dwCaps & DDSCAPS_TEXTURE) {
     // FIXME: Delay this until the interface is queried the first time?!
-    surface->texture = CreateInterface("IDirect3DTexture2", 200);
+    surface->texture = CreateInterface("IDirect3DTexture2", 20);
     Direct3DTexture2* texture = (Direct3DTexture2*)Memory(surface->texture);
     texture->surface = surfaceAddress;
     glGenTextures(1, &texture->handle);
@@ -2208,7 +2208,7 @@ HACKY_COM_BEGIN(IDirectDrawSurface4, 12)
     *(Address*)Memory(stack[3]) = stack[1];
   } else {
     printf("Creating new dummy surface\n");
-    Address surfaceAddress = CreateInterface("IDirectDrawSurface4", 200);
+    Address surfaceAddress = CreateInterface("IDirectDrawSurface4", 50);
     DirectDrawSurface4* surface = (DirectDrawSurface4*)Memory(surfaceAddress);
     surface->texture = 0;
     *(Address*)Memory(stack[3]) = surfaceAddress;
