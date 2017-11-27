@@ -87,20 +87,31 @@ uint32_t tls[1000] = {0};
 static void UnknownImport(void* uc, uint64_t address, uint32_t size, void* user_data);
 Address CreateInterface(const char* name, unsigned int slotCount) {
   //FIXME: Unsure about most terminology / inner workings here
-  Address interfaceAddress = Allocate(4 * slotCount);
-  uint32_t* interface = (uint32_t*)Memory(interfaceAddress);
+  Address interfaceAddress = Allocate(1000); //FIXME: Size of object
+  Address vtableAddress = Allocate(4 * slotCount);
+  uint32_t* vtable = (uint32_t*)Memory(vtableAddress);
   for(unsigned int i = 0; i < slotCount; i++) {
     // Point addresses to themself
     char* slotName = malloc(128);
     sprintf(slotName, "%s__%d", name, i);
     Export* export = LookupExportByName(slotName);
+
+    Address outAddress = CreateOut();
     if (export != NULL) {
-      CreateBreakpoint(interfaceAddress + i * 4, export->callback, slotName);
+
+      AddOutHandler(outAddress, export->callback, (void*)slotName);
+
+      //CreateBreakpoint(interfaceAddress + i * 4, export->callback, slotName);
     } else {
-      CreateBreakpoint(interfaceAddress + i * 4, UnknownImport, slotName);
+      AddOutHandler(outAddress, UnknownImport, (void*)slotName);
+
+      //CreateBreakpoint(interfaceAddress + i * 4, UnknownImport, slotName);
     }
-    interface[i] = interfaceAddress + i * 4;
+    vtable[i] = outAddress;
   }
+  // First element in object is pointer to vtable
+  *(uint32_t*)Memory(interfaceAddress) = vtableAddress;
+
   return interfaceAddress;
 }
 
@@ -3540,12 +3551,14 @@ int main(int argc, char* argv[]) {
 *(uint8_t*)Memory(0x4A1710) = 0xC3; // _lock_file
 *(uint8_t*)Memory(0x4A1780) = 0xC3; // _unlock_file
 
+#if 0 //FIXME FIXME FIXME FIXME FIXME
   // These do something bad internally
   CreateBreakpoint(0x49f270, UcMallocHook, "<malloc>");
   CreateBreakpoint(0x49f200, UcFreeHook, "<free>");
 
   // This function used to crash with SIGSEGV, so I wanted to peek at the parameters.
   CreateBreakpoint(0x48A230, UcTGAHook, "<TGAHook>");
+#endif
 
 
 #if 0

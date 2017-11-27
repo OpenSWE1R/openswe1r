@@ -176,10 +176,8 @@ typedef struct {
 #define DDPF_ALPHAPIXELS 0x00000001
 #define DDPF_RGB         0x00000040
 
-typedef Address IDirectDrawSurface4[100];
-
 typedef struct {
-  IDirectDrawSurface4 vtable;
+  void* vtable;
   Address texture; // Direct3DTexture2*
   DDSURFACEDESC2 desc;
 } DirectDrawSurface4;

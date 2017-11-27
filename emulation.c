@@ -231,6 +231,7 @@ void* Memory(uint32_t address) {
 
 void CreateBreakpoint(uint32_t address, void* callback, void* user) {
   //FIXME: Loop over imports?!
+  assert(false);
 #if 0
 #ifdef UC_KVM
   assert(false);

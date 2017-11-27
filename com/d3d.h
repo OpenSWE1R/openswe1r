@@ -4,10 +4,8 @@
 #include "../emulation.h"
 #include "../windows.h"
 
-typedef Address IDirect3DTexture2[100]; //FIXME: WTF is this?!
-
 typedef struct {
-  IDirect3DTexture2 vtable;
+  void* vtable;
   GLuint handle;
 } Direct3DTexture2;
 
