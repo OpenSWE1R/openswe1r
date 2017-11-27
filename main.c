@@ -1888,6 +1888,7 @@ HACKY_COM_BEGIN(IDirectDraw4, 6)
     // FIXME: Delay this until the interface is queried the first time?!
     surface->texture = CreateInterface("IDirect3DTexture2", 200);
     Direct3DTexture2* texture = (Direct3DTexture2*)Memory(surface->texture);
+    texture->surface = surfaceAddress;
     glGenTextures(1, &texture->handle);
   } else {
     //FIXME: only added to catch bugs, null pointer should work
@@ -2649,6 +2650,37 @@ HACKY_COM_END()
 
 
 // IDirect3DTexture2
+
+// IDirect3DTexture2 -> STDMETHOD(QueryInterface)				(THIS_ REFIID, LPVOID FAR *) PURE; // 0
+HACKY_COM_BEGIN(IDirect3DTexture2, 0)
+  hacky_printf("QueryInterface\n");
+  hacky_printf("p 0x%" PRIX32 "\n", stack[1]);
+  hacky_printf("a 0x%" PRIX32 "\n", stack[2]);
+  hacky_printf("b 0x%" PRIX32 "\n", stack[3]);
+
+  const IID* iid = (const IID*)Memory(stack[2]);
+
+  char iidString[1024];
+  sprintf(iidString, "%08" PRIX32 "-%04" PRIX16 "-%04" PRIX16 "-%02" PRIX8 "%02" PRIX8 "-%02" PRIX8 "%02" PRIX8 "%02" PRIX8 "%02" PRIX8 "%02" PRIX8 "%02" PRIX8,
+          iid->Data1, iid->Data2, iid->Data3,
+          iid->Data4[0], iid->Data4[1], iid->Data4[2], iid->Data4[3],
+          iid->Data4[4], iid->Data4[5], iid->Data4[6], iid->Data4[7]);
+  printf("  (read iid: {%s})\n", iidString);
+
+  char name[32];
+  //FIXME: Add more classed / interfaces
+
+  if (!strcmp(iidString, "0B2B8630-AD35-11D0-8EA6-00609797EA5B")) {
+    Direct3DTexture2* this = Memory(stack[1]);
+    *(Address*)Memory(stack[3]) = this->surface;
+  } else {
+    assert(false);
+  }
+ 
+  eax = 0;
+  esp += 3 * 4;
+HACKY_COM_END()
+
 
 // IDirect3DTexture2 -> STDMETHOD_(ULONG,Release)       (THIS) PURE; //2
 HACKY_COM_BEGIN(IDirect3DTexture2, 2)

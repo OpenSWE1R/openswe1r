@@ -6,6 +6,7 @@
 
 typedef struct {
   void* vtable;
+  Address surface;
   GLuint handle;
 } Direct3DTexture2;
 
