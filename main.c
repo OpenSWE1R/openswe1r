@@ -3258,6 +3258,18 @@ HACKY_COM_BEGIN(IA3dSource, 7)
   esp += 2 * 4;
 HACKY_COM_END()
 
+// IA3dSource -> STDMETHOD(GetType)					(THIS_ LPDWORD) PURE; // 10
+HACKY_COM_BEGIN(IA3dSource, 10)
+  hacky_printf("GetType\n");
+  hacky_printf("p 0x%" PRIX32 "\n", stack[1]);
+  hacky_printf("a 0x%" PRIX32 "\n", stack[2]);
+
+  *(uint32_t*)Memory(stack[2]) = 0;
+
+  eax = 0;
+  esp += 2 * 4;
+HACKY_COM_END()
+
 // IA3dSource -> STDMETHOD(Lock)						(THIS_ DWORD, DWORD, LPVOID *, LPDWORD, LPVOID *, LPDWORD, DWORD) PURE; // 11
 HACKY_COM_BEGIN(IA3dSource, 11)
   hacky_printf("Lock\n");
@@ -3307,7 +3319,75 @@ HACKY_COM_BEGIN(IA3dSource, 12)
   esp += 5 * 4;
 HACKY_COM_END()
 
+// IA3dSource -> STDMETHOD(Play)						(THIS_ INT) PURE; // 13
+HACKY_COM_BEGIN(IA3dSource, 13)
+  hacky_printf("Play\n");
+  hacky_printf("p 0x%" PRIX32 "\n", stack[1]);
+  hacky_printf("a 0x%" PRIX32 "\n", stack[2]);
+  eax = 0;
+  esp += 2 * 4;
+HACKY_COM_END()
 
+// IA3dSource -> STDMETHOD(SetGain)					(THIS_ A3DVAL) PURE; // 40
+HACKY_COM_BEGIN(IA3dSource, 40)
+  hacky_printf("SetGain\n");
+  hacky_printf("p 0x%" PRIX32 "\n", stack[1]);
+  hacky_printf("a 0x%" PRIX32 "\n", stack[2]);
+  eax = 0;
+  esp += 2 * 4;
+HACKY_COM_END()
+
+// IA3dSource -> STDMETHOD(SetPitch)					(THIS_ A3DVAL) PURE; // 42
+HACKY_COM_BEGIN(IA3dSource, 42)
+  hacky_printf("SetPitch\n");
+  hacky_printf("p 0x%" PRIX32 "\n", stack[1]);
+  hacky_printf("a 0x%" PRIX32 "\n", stack[2]);
+  eax = 0;
+  esp += 2 * 4;
+HACKY_COM_END()
+
+// IA3dSource -> STDMETHOD(SetRenderMode)			(THIS_ DWORD) PURE; // 52
+HACKY_COM_BEGIN(IA3dSource, 52)
+  hacky_printf("SetRenderMode\n");
+  hacky_printf("p 0x%" PRIX32 "\n", stack[1]);
+  hacky_printf("a 0x%" PRIX32 "\n", stack[2]);
+  eax = 0;
+  esp += 2 * 4;
+HACKY_COM_END()
+
+// IA3dSource -> STDMETHOD(GetRenderMode)			(THIS_ LPDWORD) PURE; // 53
+HACKY_COM_BEGIN(IA3dSource, 53)
+  hacky_printf("GetRenderMode\n");
+  hacky_printf("p 0x%" PRIX32 "\n", stack[1]);
+  hacky_printf("a 0x%" PRIX32 "\n", stack[2]);
+
+  *(uint32_t*)Memory(stack[2]) = 0;
+
+  eax = 0;
+  esp += 2 * 4;
+HACKY_COM_END()
+
+// IA3dSource -> STDMETHOD(GetStatus)				(THIS_ LPDWORD) PURE; // 56
+HACKY_COM_BEGIN(IA3dSource, 56)
+  hacky_printf("GetStatus\n");
+  hacky_printf("p 0x%" PRIX32 "\n", stack[1]);
+  hacky_printf("a 0x%" PRIX32 "\n", stack[2]);
+
+  *(uint32_t*)Memory(stack[2]) = 0;
+
+  eax = 0;
+  esp += 2 * 4;
+HACKY_COM_END()
+
+// IA3dSource -> STDMETHOD(SetPanValues)				(THIS_ DWORD, LPA3DVAL) PURE; // 57
+HACKY_COM_BEGIN(IA3dSource, 57)
+  hacky_printf("SetPanValues\n");
+  hacky_printf("p 0x%" PRIX32 "\n", stack[1]);
+  hacky_printf("a 0x%" PRIX32 "\n", stack[2]);
+  hacky_printf("b 0x%" PRIX32 "\n", stack[3]);
+  eax = 0;
+  esp += 3 * 4;
+HACKY_COM_END()
 
 // IA3dSource -> STDMETHOD(SetWaveEvent)				(THIS_ DWORD, HANDLE) PURE; // 59
 HACKY_COM_BEGIN(IA3dSource, 59)
