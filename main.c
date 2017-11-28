@@ -1554,105 +1554,13 @@ HACKY_IMPORT_BEGIN(FindFirstFileA)
   hacky_printf("lpFileName 0x%" PRIX32 " ('%s')\n", stack[1], pattern);
   hacky_printf("lpFindFileData 0x%" PRIX32 "\n", stack[2]);
 //dwFileAttributes
-   if (!strcmp("levels\\*.*", pattern)) {
-    static const char* levels[] = {
-      ".", "..", // revolt.exe depends on these due to a bug.. awesome!
-      "bot_bat",
-      "frontend",
-      "garden1",
-      "markar",
-      "market1",
-      "market2",
-      "muse1",
-      "muse2",
-      "muse_bat",
-      "nhood1",
-      "nhood1_battle",
-      "nhood2",
-      "ship1",
-      "ship2",
-      "stunts",
-      "toy2",
-      "toylite",
-      "wild_west1",
-      "wild_west2",
+   if (!strcmp(".\\data\\player\\*.sav", pattern)) {
+    static const char* profiles[] = {
+      ".", "..",
+      "anakin.sav",
       NULL
     };
-    dirlisting = levels;
-  } else if (!strcmp("cars\\*.*", pattern)) {
-    static const char* cars[] = {
-      ".", "..", // revolt.exe depends on these due to a bug.. awesome!
-      "adeon",
-      "amw",
-      "beatall",
-      "candy",
-      "cougar",
-      "dino",
-      "flag",
-      "fone",
-      "gencar",
-      "misc",
-      "mite",
-      "moss",
-      "mouse",
-      "mud",
-      "panga",
-      "phat",
-      "q",
-      "r5",
-      "rc",
-      "rotor",
-      "sgt",
-      "sugo",
-      "tc1",
-      "tc2",
-      "tc3",
-      "tc4",
-      "tc5",
-      "tc6",
-      "toyeca",
-      "trolley",
-      "ufo",
-      "volken",
-      "wincar",
-      "wincar2",
-      "wincar3",
-      "wincar4",
-      NULL
-    };
-    dirlisting = cars;
-  } else if (!strcmp("levels\\frontend\\*.prm", pattern)) {
-    static const char* frontendObjects[] = {
-      "bballbox.prm",
-      "box01.prm",
-      "box02.prm",
-      "box03.prm",
-      "box04.prm",
-      "box05.prm",
-      "box5.prm",
-      "chicks.prm",
-      "clockcase.prm",
-      "cup01.prm",
-      "helbladebig.prm",
-      "helbladesmall.prm",
-      "hellbody.prm",
-      "hellsb.prm",
-      "largemagstand.prm",
-      "light.prm",
-      "magstand.prm",
-      "pangacard.prm",
-      "plain.prm",
-      "podium.prm",
-      "posterstand2.prm",
-      "posterstand.prm",
-      "salebin.prm",
-      "smallscreen.prm",
-      "track.prm",
-      "tvstand.prm",
-      "ufostand.prm",
-      NULL
-    };
-    dirlisting = frontendObjects;
+    dirlisting = profiles;
   } else {
     const char* none[] = { NULL };
     dirlisting = none;
