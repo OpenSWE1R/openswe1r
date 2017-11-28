@@ -111,7 +111,7 @@ Address CreateInterface(const char* name, unsigned int slotCount) {
       //CreateBreakpoint(interfaceAddress + i * 4, export->callback, slotName);
     } else {
 
-      Address outAddress = CreateOut();
+      outAddress = CreateOut();
       AddOutHandler(outAddress, UnknownImport, (void*)slotName);
 
       //CreateBreakpoint(interfaceAddress + i * 4, UnknownImport, slotName);
