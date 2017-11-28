@@ -39,6 +39,16 @@ typedef struct {
 #endif
 } DIDEVICEINSTANCEA;
 
+typedef struct {
+    DWORD       dwOfs;
+    DWORD       dwData;
+    DWORD       dwTimeStamp;
+    DWORD       dwSequence;
+#if (DIRECTINPUT_VERSION >= 0x0800)
+    UINT_PTR    uAppData;
+#endif
+} DIDEVICEOBJECTDATA;
+
 
 // From Microsoft DX6 SDK headers
 
