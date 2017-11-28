@@ -1319,6 +1319,13 @@ HACKY_IMPORT_BEGIN(CreateEventA)
   esp += 4 * 4;
 HACKY_IMPORT_END()
 
+HACKY_IMPORT_BEGIN(SetEvent)
+  hacky_printf("hEvent 0x%" PRIX32 "\n", stack[1]);
+
+  eax = 1; //  succeeds = return value is nonzero
+  esp += 1 * 4;
+HACKY_IMPORT_END()
+
 HACKY_IMPORT_BEGIN(WaitForSingleObject)
   hacky_printf("hHandle 0x%" PRIX32 "\n", stack[1]);
   hacky_printf("dwMilliseconds %" PRId32 "\n", stack[2]);
