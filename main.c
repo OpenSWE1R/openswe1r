@@ -2257,7 +2257,11 @@ HACKY_COM_BEGIN(IDirectDrawSurface4, 32)
   if (desc->ddpfPixelFormat.dwRGBBitCount == 32) {
     glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, desc->dwWidth, desc->dwHeight, 0, GL_RGBA, GL_UNSIGNED_BYTE, Memory(desc->lpSurface));
   } else {
-    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, desc->dwWidth, desc->dwHeight, 0, GL_BGRA, GL_UNSIGNED_SHORT_1_5_5_5_REV, Memory(desc->lpSurface));
+    if (desc->ddpfPixelFormat.dwRGBAlphaBitMask == 0x8000) {
+      glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, desc->dwWidth, desc->dwHeight, 0, GL_BGRA, GL_UNSIGNED_SHORT_1_5_5_5_REV, Memory(desc->lpSurface));
+    } else {
+      glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, desc->dwWidth, desc->dwHeight, 0, GL_BGRA, GL_UNSIGNED_SHORT_4_4_4_4_REV, Memory(desc->lpSurface));
+    }
   }
   glBindTexture(GL_TEXTURE_2D, previousTexture);
 
@@ -2526,6 +2530,26 @@ HACKY_COM_BEGIN(IDirect3DDevice3, 8)
       format->dwSize = sizeof(DDPIXELFORMAT);
       format->dwFlags = DDPF_RGB | DDPF_ALPHAPIXELS;
       format->dwRGBBitCount = 16;
+      format->dwRBitMask = 0x0F00;
+      format->dwGBitMask = 0x00F0;
+      format->dwBBitMask = 0x000F;
+      format->dwRGBAlphaBitMask = 0xF000;
+
+      esp -= 4;
+      *(uint32_t*)Memory(esp) = b; // user pointer
+      esp -= 4;
+      *(uint32_t*)Memory(esp) = formatAddress; // DDPIXELFORMAT*
+
+      esp -= 4;
+      *(uint32_t*)Memory(esp) = returnAddress; // Return where this was supposed to return to
+    }
+    {
+      Address formatAddress = Allocate(sizeof(DDPIXELFORMAT));
+      DDPIXELFORMAT* format = (DDPIXELFORMAT*)Memory(formatAddress);
+      memset(format, 0x00, sizeof(DDPIXELFORMAT));
+      format->dwSize = sizeof(DDPIXELFORMAT);
+      format->dwFlags = DDPF_RGB | DDPF_ALPHAPIXELS;
+      format->dwRGBBitCount = 16;
       format->dwRBitMask = 0x7C00;
       format->dwGBitMask = 0x03E0;
       format->dwBBitMask = 0x001F;
@@ -2537,7 +2561,7 @@ HACKY_COM_BEGIN(IDirect3DDevice3, 8)
       *(uint32_t*)Memory(esp) = formatAddress; // DDPIXELFORMAT*
 
       esp -= 4;
-      *(uint32_t*)Memory(esp) = returnAddress; // Return where this was supposed to return to
+      *(uint32_t*)Memory(esp) = a; // Continue with next format
     }
 #if 1
     {
