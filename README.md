@@ -5,7 +5,7 @@
 ### OpenSWE1R
 *An Open-Source port of the 1999 Game ["Star Wars: Episode 1 Racer"](https://en.wikipedia.org/wiki/Star_Wars_Episode_I:_Racer)*
 
-![Screenshot](https://i.imgur.com/oFsQUXc.png)
+![Screenshot of OpenSWE1R running on Linux](https://i.imgur.com/LAqHPgh.png)
 
 ### Details
 
@@ -19,7 +19,7 @@ Currently, not all functions are implemented in the open-source portion.
 Therefore, this project also still relies on the original games code.
 Even if not all code is patched, the game will still work cross-platform due to the API and CPU abstraction.
 
-You will still need the original game for it's art assets: levels, sounds, ...
+You will still need the original game for its art assets: levels, sounds, ...
 
 ### Goals
 
