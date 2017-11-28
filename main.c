@@ -2211,8 +2211,11 @@ HACKY_COM_BEGIN(IDirectDrawSurface4, 25)
   assert(stack[2] == 0);
   assert(stack[5] == 0);
 
-  this->desc.lpSurface = Allocate(this->desc.dwHeight * this->desc.lPitch);
-  memset(Memory(this->desc.lpSurface), 0x77, this->desc.dwHeight * this->desc.lPitch);
+  //Hack: Part 1: check if we already have this surface in RAM
+  if (this->desc.lpSurface == 0) {
+    this->desc.lpSurface = Allocate(this->desc.dwHeight * this->desc.lPitch);
+    memset(Memory(this->desc.lpSurface), 0x77, this->desc.dwHeight * this->desc.lPitch);
+  }
 
   DDSURFACEDESC2* desc = Memory(stack[3]);
   memcpy(desc, &this->desc, sizeof(DDSURFACEDESC2));
@@ -2269,8 +2272,11 @@ HACKY_COM_BEGIN(IDirectDrawSurface4, 32)
   }
   glBindTexture(GL_TEXTURE_2D, previousTexture);
 
+//Hack: part 2: don't free this to keep data in RAM. see lock for part 1
+#if 0
   Free(desc->lpSurface);
   desc->lpSurface = 0;
+#endif
 
   eax = 0; // FIXME: No idea what this expects to return..
   esp += 2 * 4;
