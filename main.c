@@ -3874,7 +3874,8 @@ int main(int argc, char* argv[]) {
 
 
     glDisable(GL_DEPTH_TEST);
-    glDisable(GL_BLEND);
+    glEnable(GL_BLEND);
+    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
     glDisable(GL_CULL_FACE);
 //    glDepthFunc(GL_GEQUAL);
     glCullFace(GL_FRONT);    
