@@ -758,8 +758,11 @@ HACKY_IMPORT_END()
 HACKY_IMPORT_BEGIN(GetCursorPos)
   hacky_printf("lpPoint 0x%" PRIX32 "\n", stack[1]);
   int32_t* point = (int32_t*)Memory(stack[1]);
-  point[0] = 100;
-  point[1] = 100;
+  int x;
+  int y;
+  SDL_GetMouseState(&x, &y);
+  point[0] = x;
+  point[1] = y;
   eax = 1; // nonzero if succeeds
   esp += 1 * 4;
 HACKY_IMPORT_END()
@@ -3786,7 +3789,7 @@ void RunX86(Exe* exe) {
 int main(int argc, char* argv[]) {
   printf("-- Initializing\n");
   InitializeEmulation();
-  if (SDL_Init(SDL_INIT_VIDEO) < 0) {
+  if (SDL_Init(SDL_INIT_VIDEO | SDL_INIT_EVENTS) < 0) {
 		  printf("Failed to initialize SDL2!\n");
   }
   printf("-- Creating window\n");
