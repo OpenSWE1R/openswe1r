@@ -46,6 +46,17 @@ typedef struct {
 unsigned int exportCount = 0;
 Export* exports = NULL;
 
+void AddExport(const char* name, void* callback, Address address) {
+  exports = realloc(exports, (exportCount + 1) * sizeof(Export));
+  Export* export = &exports[exportCount];
+  export->name = malloc(strlen(name) + 1);
+  strcpy((char*)export->name, name);
+  export->callback = callback;
+  export->address = 0;
+  exportCount++;
+}
+
+
 Export* LookupExportByName(const char* name) {
   for(unsigned int i = 0; i < exportCount; i++) {
     Export* export = &exports[i];
@@ -113,6 +124,7 @@ Address CreateInterface(const char* name, unsigned int slotCount) {
 
       outAddress = CreateOut();
       AddOutHandler(outAddress, UnknownImport, (void*)slotName);
+      AddExport(slotName, UnknownImport, outAddress);
 
       //CreateBreakpoint(interfaceAddress + i * 4, UnknownImport, slotName);
     }
@@ -455,13 +467,7 @@ static uint32_t callId = 0;
   __attribute__((constructor)) static void Register_ ## _name () { \
     const char* name = #_name; \
     printf("Registering hook for '%s'\n", name); \
-    exports = realloc(exports, (exportCount + 1) * sizeof(Export)); \
-    Export* export = &exports[exportCount]; \
-    export->name = malloc(strlen(name) + 1); \
-    strcpy((char*)export->name, name); \
-    export->callback = Hook_ ## _name; \
-    export->address = 0; \
-    exportCount++; \
+    AddExport(name, Hook_ ## _name, 0); \
   } \
   static void Hook_ ## _name (void* uc, uint64_t _address, uint32_t _size, void* _user_data) { \
     bool silent = false; \
@@ -3697,6 +3703,7 @@ Exe* LoadExe(const char* path) {
           if (export == NULL) {
             Address outAddress = CreateOut();
             AddOutHandler(outAddress, UnknownImport, (void*)label);
+            AddExport(label, UnknownImport, outAddress);
             *symbolAddress = outAddress;
             printf("missing at 0x%08X\n", outAddress);
             //FIXME: Report error and assert false
