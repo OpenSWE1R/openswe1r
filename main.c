@@ -1549,6 +1549,23 @@ HACKY_IMPORT_BEGIN(SetFileAttributesA)
   esp += 2 * 4;
 HACKY_IMPORT_END()
 
+HACKY_IMPORT_BEGIN(FileTimeToLocalFileTime)
+  hacky_printf("lpFileTime 0x%" PRIX32 "\n", stack[1]);
+  hacky_printf("lpLocalFileTime 0x%" PRIX32 "\n", stack[2]);
+  //FIXME
+  eax = 1; // nonzero if succeeds
+  esp += 2 * 4;
+HACKY_IMPORT_END()
+
+HACKY_IMPORT_BEGIN(FileTimeToSystemTime)
+  hacky_printf("lpFileTime 0x%" PRIX32 "\n", stack[1]);
+  hacky_printf("lpSystemTime 0x%" PRIX32 "\n", stack[2]);
+  //FIXME
+  eax = 1; // nonzero if succeeds
+  esp += 2 * 4;
+HACKY_IMPORT_END()
+
+
 HACKY_IMPORT_BEGIN(FindFirstFileA)
   const char* pattern = (const char*)Memory(stack[1]);
   hacky_printf("lpFileName 0x%" PRIX32 " ('%s')\n", stack[1], pattern);
