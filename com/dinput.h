@@ -1,6 +1,8 @@
 #ifndef __OPENSWE1R_COM_DINPUT_H__
 #define __OPENSWE1R_COM_DINPUT_H__
 
+#define DIRECTINPUT_VERSION 0x0600
+
 #include "../windows.h"
 
 #include "../export.h"
@@ -22,6 +24,20 @@ typedef struct {
   DWORD   dwNumObjs;
   LPDIOBJECTDATAFORMAT rgodf;
 } DIDATAFORMAT;
+
+typedef struct {
+    DWORD   dwSize;
+    GUID    guidInstance;
+    GUID    guidProduct;
+    DWORD   dwDevType;
+    char    tszInstanceName[MAX_PATH];
+    char    tszProductName[MAX_PATH];
+#if (DIRECTINPUT_VERSION >= 0x0500)
+    GUID    guidFFDriver;
+    uint16_t    wUsagePage;
+    uint16_t    wUsage;
+#endif
+} DIDEVICEINSTANCEA;
 
 
 // From Microsoft DX6 SDK headers

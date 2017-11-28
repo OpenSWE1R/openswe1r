@@ -965,7 +965,9 @@ HACKY_IMPORT_END()
 
 HACKY_IMPORT_BEGIN(CloseHandle)
   hacky_printf("hObject 0x%" PRIX32 "\n", stack[1]);
-  if (stack[1] == 54321) { // Thread handle..
+  if (stack[1] == 5554321) { // Thread handle..
+    eax = 1; // nonzero if succeeds
+  } else if (stack[1] == 5551337) { // Thread handle..
     eax = 1; // nonzero if succeeds
   } else {
     eax = fclose(handles[stack[1]]) ? 0 : 1; // nonzero if succeeds
@@ -1313,7 +1315,7 @@ HACKY_IMPORT_BEGIN(CreateThread)
 
   //CreateEmulatedThread(stack[3]);
 
-  eax = 54321; //  handle to new thread
+  eax = 5554321; //  handle to new thread
   esp += 6 * 4;
 
 HACKY_IMPORT_END()
@@ -2937,6 +2939,29 @@ HACKY_COM_BEGIN(IDirectInputDeviceA, 2)
   esp += 1 * 4;
 HACKY_COM_END()
 
+// IDirectInputDeviceA -> STDMETHOD(GetCapabilities)(THIS_ LPDIDEVCAPS) PURE; // 3
+HACKY_COM_BEGIN(IDirectInputDeviceA, 3)
+  hacky_printf("p 0x%" PRIX32 "\n", stack[1]);
+  hacky_printf("a 0x%" PRIX32 "\n", stack[2]);
+
+  //FIXME!
+
+  eax = 0; // FIXME: No idea what this expects to return..
+  esp += 2 * 4;
+HACKY_COM_END()
+
+// IDirectInputDeviceA -> STDMETHOD(SetProperty)(THIS_ REFGUID,LPCDIPROPHEADER) PURE; // 6
+HACKY_COM_BEGIN(IDirectInputDeviceA, 6)
+  hacky_printf("p 0x%" PRIX32 "\n", stack[1]);
+  hacky_printf("a 0x%" PRIX32 "\n", stack[2]);
+  hacky_printf("b 0x%" PRIX32 "\n", stack[3]);
+
+  //FIXME!
+
+  eax = 0; // FIXME: No idea what this expects to return..
+  esp += 3 * 4;
+HACKY_COM_END()
+
 // IDirectInputDeviceA -> STDMETHOD(Acquire)(THIS) PURE; // 7
 HACKY_COM_BEGIN(IDirectInputDeviceA, 7)
   hacky_printf("p 0x%" PRIX32 "\n", stack[1]);
@@ -2971,6 +2996,21 @@ HACKY_COM_BEGIN(IDirectInputDeviceA, 9)
   memcpy(Memory(stack[3]), state, stack[2]);
   eax = 0; // FIXME: No idea what this expects to return..
   esp += 3 * 4;
+HACKY_COM_END()
+
+// IDirectInputDeviceA -> STDMETHOD(GetDeviceData)(THIS_ DWORD,LPDIDEVICEOBJECTDATA,LPDWORD,DWORD) PURE; // 10
+HACKY_COM_BEGIN(IDirectInputDeviceA, 10)
+  hacky_printf("p 0x%" PRIX32 "\n", stack[1]);
+  hacky_printf("a 0x%" PRIX32 "\n", stack[2]);
+  hacky_printf("b 0x%" PRIX32 "\n", stack[3]);
+  hacky_printf("c 0x%" PRIX32 "\n", stack[4]);
+  hacky_printf("d 0x%" PRIX32 "\n", stack[5]);
+
+  //FIXME!
+  *(uint32_t*)Memory(stack[4]) = 0; // Set output count to 0
+
+  eax = 0; // FIXME: No idea what this expects to return..
+  esp += 5 * 4;
 HACKY_COM_END()
 
 // IDirectInputDeviceA -> STDMETHOD(SetDataFormat)(THIS_ LPCDIDATAFORMAT) PURE;
@@ -3081,13 +3121,47 @@ HACKY_COM_END()
 HACKY_COM_BEGIN(IDirectInputA, 4)
   hacky_printf("EnumDevices\n");
   hacky_printf("p 0x%" PRIX32 "\n", stack[1]);
-  hacky_printf("p1 0x%" PRIX32 "\n", stack[2]);
-  hacky_printf("p2 0x%" PRIX32 "\n", stack[3]);
-  hacky_printf("p3 0x%" PRIX32 "\n", stack[4]);
-  hacky_printf("p4 0x%" PRIX32 "\n", stack[5]);
+  uint32_t a = stack[2];
+  uint32_t b = stack[3];
+  uint32_t c = stack[4];
+  uint32_t d = stack[5];
+  hacky_printf("p1 0x%" PRIX32 "\n", a);
+  hacky_printf("p2 0x%" PRIX32 "\n", b);
+  hacky_printf("p3 0x%" PRIX32 "\n", c);
+  hacky_printf("p4 0x%" PRIX32 "\n", d);
   //FIXME: Do some callback stuff
   eax = 0; // HRESULT -> non-negative means success
   esp += 5 * 4;
+  // Push a call to the callback onto the stack.. this is some ugly hack..
+  {
+    esp -= 4;
+    *(uint32_t*)Memory(esp) = c; // pvRef
+
+    Address ddiAddress = Allocate(sizeof(DIDEVICEINSTANCEA));
+    DIDEVICEINSTANCEA* ddi = Memory(ddiAddress);
+    memset(ddi, 0x00, sizeof(DIDEVICEINSTANCEA));
+
+    ddi->dwSize = sizeof(DIDEVICEINSTANCEA);
+    //FIXME:    GUID guidInstance;
+    //FIXME:    GUID guidProduct;
+    #define DIDEVTYPE_KEYBOARD          3
+    ddi->dwDevType = DIDEVTYPE_KEYBOARD; // or something
+    sprintf(ddi->tszInstanceName, "OpenSWE1R Keyboard 1"); // TCHAR tszInstanceName[MAX_PATH];
+    sprintf(ddi->tszProductName, "OpenSWE1R Keyboard"); // TCHAR tszProductName[MAX_PATH];
+    //FIXME:    GUID guidFFDriver;
+    ddi->wUsagePage = 0; //FIXME look at usb spec?
+    ddi->wUsage = 0; //FIXME look at usb spec?
+
+    esp -= 4;
+    *(uint32_t*)Memory(esp) = ddiAddress; // LPDIENUMDEVICESCALLBACKA
+
+    // Emulate the call
+    esp -= 4;
+    *(uint32_t*)Memory(esp) = returnAddress; // Return where this was supposed to return to
+    eip = b;
+    printf("  Callback at 0x%" PRIX32 "\n", eip);
+    //FIXME: Add a hook which returns 0
+  }
 HACKY_COM_END()
 
 
@@ -3889,8 +3963,9 @@ uint8_t* patch = Memory(0x417010); // _get_fname:
 
 *(uint8_t*)Memory(0x487d71) = 0x75; // Invert the check for eax after "DirectDrawEnumerate" (ours will always fail)
 *(uint8_t*)Memory(0x488ce2) = 0x75; // Invert the check for eax after "EnumDisplayModes" (ours will always fail)
-*(uint8_t*)Memory(0x489e20) = 0x75; // Invert the check for eax after "EnumDevices" (ours will always fail)
+*(uint8_t*)Memory(0x489e20) = 0x75; // Invert the check for eax after "EnumDevices" [graphics] (ours will always fail)
 *(uint8_t*)Memory(0x48a013) = 0x84; // Invert the check for eax after "EnumTextureFormats" (ours will always fail)
+*(uint8_t*)Memory(0x485433) = 0x75; // Invert the check for eax after "EnumDevices" [input] (ours will always fail)
 
 //memset(Memory(0x423cd9), 0x90, 5); // Disable command line arg scanning
 

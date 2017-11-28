@@ -1,7 +1,7 @@
 #ifndef __OPENSWE1R_COM_D3D_H__
 #define __OPENSWE1R_COM_D3D_H__
 
-#define DIRECT3D_VERSION 0x0700
+#define DIRECT3D_VERSION 0x0600
 
 #include "../emulation.h"
 #include "../windows.h"
