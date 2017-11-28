@@ -2037,12 +2037,6 @@ HACKY_COM_BEGIN(IDirectDraw4, 11)
   halCaps->dwVidMemFree = 12*1024*1024; // 12MiB VRAM free :(
   
 #endif
-#if 0
-  halCaps->dwMinTextureWidth = 1;
-  halCaps->dwMinTextureHeight = 1;
-  halCaps->dwMaxTextureWidth = 2048;
-  halCaps->dwMaxTextureHeight = 2048;
-#endif
 
   eax = 0; // FIXME: No idea what this expects to return..
   esp += 3 * 4;
@@ -2365,8 +2359,37 @@ HACKY_COM_BEGIN(IDirect3D3, 3)
 
     Address desc_addr = Allocate(sizeof(D3DDEVICEDESC));
     D3DDEVICEDESC* desc = (D3DDEVICEDESC*)Memory(desc_addr);
+    memset(desc, 0x00, sizeof(D3DDEVICEDESC));
     desc->dwSize = sizeof(D3DDEVICEDESC);
     desc->dwFlags = 0xFFFFFFFF;
+
+    desc->dwDeviceZBufferBitDepth = 24;
+
+    #define D3DPTEXTURECAPS_PERSPECTIVE     0x00000001L
+    #define D3DPTEXTURECAPS_ALPHA           0x00000004L
+    #define D3DPTEXTURECAPS_TRANSPARENCY    0x00000008L
+
+    desc->dpcTriCaps.dwTextureCaps = 0;
+    desc->dpcTriCaps.dwTextureCaps |= D3DPTEXTURECAPS_PERSPECTIVE;
+    desc->dpcTriCaps.dwTextureCaps |= D3DPTEXTURECAPS_ALPHA;
+    desc->dpcTriCaps.dwTextureCaps |= D3DPTEXTURECAPS_TRANSPARENCY;
+
+    #define D3DPSHADECAPS_ALPHAGOURAUDBLEND 0x00004000L
+
+    desc->dpcTriCaps.dwShadeCaps = 0;
+    desc->dpcTriCaps.dwShadeCaps |= D3DPSHADECAPS_ALPHAGOURAUDBLEND;
+
+    #define D3DPTBLENDCAPS_MODULATEALPHA 0x00000008L
+
+    desc->dpcTriCaps.dwTextureBlendCaps = 0;    
+    desc->dpcTriCaps.dwTextureBlendCaps |= D3DPTBLENDCAPS_MODULATEALPHA;
+
+    desc->dwMaxVertexCount = 0xFFFF;
+
+    desc->dwMinTextureWidth = 1;
+    desc->dwMinTextureHeight = 1;
+    desc->dwMaxTextureWidth = 2048;
+    desc->dwMaxTextureHeight = 2048;
 
     esp -= 4;
     *(uint32_t*)Memory(esp) = desc_addr; // LPD3DDEVICEDESC
