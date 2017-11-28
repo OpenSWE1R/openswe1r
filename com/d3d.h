@@ -298,8 +298,49 @@ typedef struct {
 #endif /* DIRECT3D_VERSION >= 0x0600 */
 } D3DDEVICEDESC;
 
+typedef enum { 
+  D3DBLEND_ZERO             = 1,
+  D3DBLEND_ONE              = 2,
+  D3DBLEND_SRCCOLOR         = 3,
+  D3DBLEND_INVSRCCOLOR      = 4,
+  D3DBLEND_SRCALPHA         = 5,
+  D3DBLEND_INVSRCALPHA      = 6,
+  D3DBLEND_DESTALPHA        = 7,
+  D3DBLEND_INVDESTALPHA     = 8,
+  D3DBLEND_DESTCOLOR        = 9,
+  D3DBLEND_INVDESTCOLOR     = 10,
+  D3DBLEND_SRCALPHASAT      = 11,
+  D3DBLEND_BOTHSRCALPHA     = 12,
+  D3DBLEND_BOTHINVSRCALPHA  = 13,
+  D3DBLEND_BLENDFACTOR      = 14,
+  D3DBLEND_INVBLENDFACTOR   = 15,
+  D3DBLEND_SRCCOLOR2        = 16,
+  D3DBLEND_INVSRCCOLOR2     = 17
+} D3DBLEND;
 
-
-
+enum {
+    D3DRS_ZENABLE                   = 7,    /* D3DZBUFFERTYPE (or TRUE/FALSE for legacy) */
+    D3DRS_FILLMODE                  = 8,    /* D3DFILLMODE */
+    D3DRS_SHADEMODE                 = 9,    /* D3DSHADEMODE */
+    D3DRS_LINEPATTERN               = 10,   /* D3DLINEPATTERN */
+    D3DRS_ZWRITEENABLE              = 14,   /* TRUE to enable z writes */
+    D3DRS_ALPHATESTENABLE           = 15,   /* TRUE to enable alpha tests */
+    D3DRS_LASTPIXEL                 = 16,   /* TRUE for last-pixel on lines */
+    D3DRS_SRCBLEND                  = 19,   /* D3DBLEND */
+    D3DRS_DESTBLEND                 = 20,   /* D3DBLEND */
+    D3DRS_CULLMODE                  = 22,   /* D3DCULL */
+    D3DRS_ZFUNC                     = 23,   /* D3DCMPFUNC */
+    D3DRS_ALPHAREF                  = 24,   /* D3DFIXED */
+    D3DRS_ALPHAFUNC                 = 25,   /* D3DCMPFUNC */
+    D3DRS_DITHERENABLE              = 26,   /* TRUE to enable dithering */
+    D3DRS_ALPHABLENDENABLE          = 27,   /* TRUE to enable alpha blending */
+    D3DRS_FOGENABLE                 = 28,   /* TRUE to enable fog blending */
+    D3DRS_SPECULARENABLE            = 29,   /* TRUE to enable specular */
+    D3DRS_ZVISIBLE                  = 30,   /* TRUE to enable z checking */
+    D3DRS_FOGCOLOR                  = 34,   /* D3DCOLOR */
+    D3DRS_FOGTABLEMODE              = 35,   /* D3DFOGMODE */
+    D3DRS_FOGSTART                  = 36,   /* Fog start (for both vertex and pixel fog) */
+    D3DRS_FOGEND = 37, /* Fog end      */
+};
 
 #endif

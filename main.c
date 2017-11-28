@@ -388,6 +388,12 @@ static void LoadVertices(unsigned int vertexFormat, Address address, unsigned in
   glBufferData(GL_ARRAY_BUFFER, count * stride, Memory(address), GL_STREAM_DRAW);
 }
 
+GLenum destBlend;
+GLenum srcBlend;
+uint32_t fogColor; // ARGB
+bool fogEnable;
+float fogStart;
+float fogEnd;
 float projectionMatrix[16];
 
 static GLenum SetupRenderer(unsigned int primitiveType, unsigned int vertexFormat) {
@@ -424,6 +430,14 @@ static GLenum SetupRenderer(unsigned int primitiveType, unsigned int vertexForma
 
   glUniform1i(glGetUniformLocation(program, "tex0"), 0);
   glUniformMatrix4fv(glGetUniformLocation(program, "projectionMatrix"), 1, GL_FALSE, projectionMatrix);
+
+  glUniform1i(glGetUniformLocation(program, "fogEnable"), fogEnable);
+  glUniform1f(glGetUniformLocation(program, "fogStart"), fogStart);
+  glUniform1f(glGetUniformLocation(program, "fogEnd"), fogEnd);
+  glUniform3f(glGetUniformLocation(program, "fogColor"),
+              ((fogColor >> 16) & 0xFF) / 255.0,
+              ((fogColor >> 8) & 0xFF) / 255.0,
+              (fogColor & 0xFF) / 255.0);
 
 #if 1
   // Hack to disable texture if tex0 is used - doesn't work?!
@@ -2625,6 +2639,26 @@ HACKY_COM_BEGIN(IDirect3DDevice3, 12)
   esp += 2 * 4;
 HACKY_COM_END()
 
+static void glSet(GLenum state, bool set) {
+  if (set) {
+    glEnable(state);
+  } else {
+    glDisable(state);
+  }
+}
+
+GLenum mapBlend(D3DBLEND blend) {
+  switch(blend) {
+  case D3DBLEND_SRCALPHA:
+    return GL_SRC_ALPHA;
+  case D3DBLEND_INVSRCALPHA:
+    return GL_ONE_MINUS_SRC_ALPHA;
+  default:
+    assert(false);
+    return GL_ZERO;
+  }
+}
+
 // IDirect3DDevice3 -> STDMETHOD(SetRenderState)(THIS_ D3DRENDERSTATETYPE,DWORD) PURE; // 22
 HACKY_COM_BEGIN(IDirect3DDevice3, 22)
   silent = false;
@@ -2636,7 +2670,79 @@ HACKY_COM_BEGIN(IDirect3DDevice3, 22)
   uint32_t a = stack[2];
   uint32_t b = stack[3];
   switch(a) {
+    case D3DRS_ZENABLE:
+      //FIXME
+      glSet(GL_DEPTH_TEST, b);
+      // Hack: While Z is not correct, we can't turn on z-test
+      glDisable(GL_DEPTH_TEST);
+      break;
+
+    case D3DRS_FILLMODE:
+      assert(b == 3);
+      //FIXME
+      break;
+
+    case D3DRS_SHADEMODE:
+      assert(b == 2);
+      //FIXME
+      break;
+
+    case D3DRS_ZWRITEENABLE:
+      glDepthMask(b ? GL_TRUE : GL_FALSE);
+      break;
+
+    case D3DRS_ALPHATESTENABLE:
+      //FIXME: Does not exist in GL 3.3 anymore
+      //glSet(GL_ALPHA_TEST, b);
+      break;
+
+    case D3DRS_SRCBLEND:
+      srcBlend = mapBlend(b);
+      break;
+
+    case D3DRS_DESTBLEND:
+      destBlend = mapBlend(b);
+      break;
+
+    case D3DRS_CULLMODE:
+      assert(b == 1);
+      //FIXME
+      break;
+
+    case D3DRS_ZFUNC:
+      assert(b == 4);
+      //FIXME
+      break;
+
+    case D3DRS_ALPHAFUNC:
+      assert(b == 6);
+      //FIXME
+      break;
+
+    case D3DRS_DITHERENABLE:
+      glSet(GL_DITHER, b);
+      break;
+
+    case D3DRS_ALPHABLENDENABLE:
+      glSet(GL_BLEND, b);
+      break;
+
+    //FIXME: Is this a bug? there doesn't seem to be lighting..
+    case D3DRS_SPECULARENABLE:
+      //FIXME
+      break;
+
     case D3DRENDERSTATE_FOGENABLE:
+      fogEnable = b;
+      break;
+    case D3DRS_FOGCOLOR:
+      fogColor = b;
+      break;
+    case D3DRS_FOGSTART:
+      fogStart = *(float*)&b;
+      break;
+    case D3DRS_FOGEND:
+      fogEnd = *(float*)&b;
       break;
     default:
       printf("Unknown render-state %d set to 0x%08" PRIX32 " (%f)\n", a, b, *(float*)&b);
@@ -2727,6 +2833,8 @@ HACKY_COM_BEGIN(IDirect3DDevice3, 38)
   } else {
     glBindTexture(GL_TEXTURE_2D, 0); // FIXME: I believe this is supposed to be white?!
   }
+
+  glBlendFunc(srcBlend, destBlend);
 
   eax = 0; // FIXME: No idea what this expects to return..
   esp += 3 * 4;
@@ -3907,9 +4015,6 @@ int main(int argc, char* argv[]) {
     glBindVertexArray(vao);
 
 
-    glDisable(GL_DEPTH_TEST);
-    glEnable(GL_BLEND);
-    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
     glDisable(GL_CULL_FACE);
 //    glDepthFunc(GL_GEQUAL);
     glCullFace(GL_FRONT);    
