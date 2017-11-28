@@ -1908,6 +1908,10 @@ HACKY_COM_BEGIN(IDirectDraw4, 6)
   } else {
     //FIXME: only added to catch bugs, null pointer should work
     surface->texture = CreateInterface("invalid", 200);
+
+    //FIXME: WTF is this shit?!
+    Direct3DTexture2* texture = (Direct3DTexture2*)Memory(surface->texture);
+    glGenTextures(1, &texture->handle);
     //assert(false);
   }
 
