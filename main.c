@@ -3280,6 +3280,13 @@ HACKY_COM_BEGIN(IA3d4, 38)
   esp += 2 * 4;
 HACKY_COM_END()
 
+// IA3dSource -> STDMETHOD_(ULONG,Release)			(THIS) PURE; // 2
+HACKY_COM_BEGIN(IA3dSource, 2)
+  hacky_printf("Release\n");
+  hacky_printf("p 0x%" PRIX32 "\n", stack[1]);
+  eax = 0;
+  esp += 1 * 4;
+HACKY_COM_END()
 
 // IA3dSource -> STDMETHOD(AllocateWaveData)			(THIS_ INT) PURE; // 5
 HACKY_COM_BEGIN(IA3dSource, 5)
