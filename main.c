@@ -2316,9 +2316,9 @@ HACKY_COM_BEGIN(IDirectDrawSurface4, 32)
   glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
   glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
   if (desc->ddpfPixelFormat.dwRGBBitCount == 32) {
-    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, desc->dwWidth, desc->dwHeight, 0, GL_RGBA, GL_UNSIGNED_INT_8_8_8_8_REV, Memory(desc->lpSurface));
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, desc->dwWidth, desc->dwHeight, 0, GL_RGBA, GL_UNSIGNED_BYTE, Memory(desc->lpSurface));
   } else {
-    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, desc->dwWidth, desc->dwHeight, 0, GL_RGBA, GL_UNSIGNED_SHORT_1_5_5_5_REV, Memory(desc->lpSurface));
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, desc->dwWidth, desc->dwHeight, 0, GL_BGRA, GL_UNSIGNED_SHORT_1_5_5_5_REV, Memory(desc->lpSurface));
   }
   glBindTexture(GL_TEXTURE_2D, previousTexture);
 
@@ -3824,8 +3824,9 @@ int main(int argc, char* argv[]) {
     glBindVertexArray(vao);
 
 
-    glEnable(GL_DEPTH_TEST);
-    glEnable(GL_BLEND);
+    glDisable(GL_DEPTH_TEST);
+    glDisable(GL_BLEND);
+    glDisable(GL_CULL_FACE);
 //    glDepthFunc(GL_GEQUAL);
     glCullFace(GL_FRONT);    
 
