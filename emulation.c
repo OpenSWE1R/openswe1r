@@ -35,7 +35,7 @@ static uint32_t stackSize = 16 * 1024 * 1024; // 4 MiB stack should be PLENTY
 
 #define HEAP_ADDRESS 0x0D000000
 static uint32_t heapAddress = HEAP_ADDRESS;
-static uint32_t heapSize = 1024 * 1024 * 1024; // 1024 MiB
+static uint32_t heapSize = 2048 * 1024 * 1024; // 2048 MiB
 
 static uc_engine *uc;
 static uint32_t ucAlignment = 0x1000;
