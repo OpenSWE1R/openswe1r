@@ -3251,6 +3251,57 @@ HACKY_COM_BEGIN(IA3dSource, 7)
   esp += 2 * 4;
 HACKY_COM_END()
 
+// IA3dSource -> STDMETHOD(Lock)						(THIS_ DWORD, DWORD, LPVOID *, LPDWORD, LPVOID *, LPDWORD, DWORD) PURE; // 11
+HACKY_COM_BEGIN(IA3dSource, 11)
+  hacky_printf("Lock\n");
+  hacky_printf("p 0x%" PRIX32 "\n", stack[1]);
+  hacky_printf("dwWriteCursor 0x%" PRIX32 "\n", stack[2]);
+  hacky_printf("dwNumBytes 0x%" PRIX32 "\n", stack[3]);
+  hacky_printf("pvAudioPtr1 0x%" PRIX32 "\n", stack[4]);
+  hacky_printf("dwAudioBytes1 0x%" PRIX32 "\n", stack[5]);
+  hacky_printf("pvAudioPtr2 0x%" PRIX32 "\n", stack[6]);
+  hacky_printf("dwAudioBytes2 0x%" PRIX32 "\n", stack[7]);
+  hacky_printf("dwFlags 0x%" PRIX32 "\n", stack[8]);
+
+  assert(stack[8] == 0);
+
+  *(Address*)Memory(stack[4]) = Allocate(stack[3]);
+  *(uint32_t*)Memory(stack[5]) = stack[3];
+
+  // Check if we can write a second buffer
+  if (stack[6] && stack[7]) {
+    *(Address*)Memory(stack[6]) = 0;
+    *(uint32_t*)Memory(stack[7]) = 0;
+  }
+
+  eax = 0;
+  esp += 8 * 4;
+HACKY_COM_END()
+
+// IA3dSource -> STDMETHOD(Unlock)					(THIS_ LPVOID, DWORD, LPVOID, DWORD) PURE; // 12
+HACKY_COM_BEGIN(IA3dSource, 12)
+  hacky_printf("Unlock\n");
+  hacky_printf("p 0x%" PRIX32 "\n", stack[1]);
+  hacky_printf("a 0x%" PRIX32 "\n", stack[2]);
+  hacky_printf("b 0x%" PRIX32 "\n", stack[3]);
+  hacky_printf("c 0x%" PRIX32 "\n", stack[4]);
+  hacky_printf("d 0x%" PRIX32 "\n", stack[5]);
+
+  //FIXME: Upload to OpenAL or something
+
+  if (stack[2]) {
+    Free(stack[2]);
+  }
+  if (stack[4]) {
+    Free(stack[4]);
+  }
+
+  eax = 0;
+  esp += 5 * 4;
+HACKY_COM_END()
+
+
+
 // IA3dSource -> STDMETHOD(SetWaveEvent)				(THIS_ DWORD, HANDLE) PURE; // 59
 HACKY_COM_BEGIN(IA3dSource, 59)
   hacky_printf("SetWaveEvent\n");
