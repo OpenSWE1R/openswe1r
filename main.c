@@ -1949,6 +1949,10 @@ HACKY_COM_BEGIN(IDirectDraw4, 6)
 
 
   memcpy(&surface->desc, desc, sizeof(DDSURFACEDESC2));
+
+  #define DDSD_PITCH 0x00000008l
+
+  surface->desc.dwFlags = DDSD_PITCH;
   surface->desc.lPitch = surface->desc.dwWidth * desc->ddpfPixelFormat.dwRGBBitCount / 8;
 
   if (desc->ddsCaps.dwCaps & DDSCAPS_TEXTURE) {
