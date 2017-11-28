@@ -462,7 +462,8 @@ static unsigned int GetThreadCount() {
 static int SliceThread(void* userData) {
   while(GetThreadCount() > 0) {
     // Run in 500ms timeslices, we don't use the shitty UC feature because it can't handle "while(1);"
-    uc_emu_stop(uc);
+    //FIXME: Disabled because it caused crashes
+    //uc_emu_stop(uc);
     //thrd_sleep(&(struct timespec){.tv_nsec=500*1000*1000}, NULL);
     thrd_sleep(&(struct timespec){.tv_sec=5}, NULL);
   }
