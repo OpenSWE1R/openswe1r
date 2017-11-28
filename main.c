@@ -2026,6 +2026,7 @@ HACKY_COM_END()
 
 // IID_IDirectDraw4 -> STDMETHOD(FlipToGDISurface)(THIS) PURE; // 10
 HACKY_COM_BEGIN(IDirectDraw4, 10)
+  hacky_printf("FlipToGDISurface\n");
   hacky_printf("p 0x%" PRIX32 "\n", stack[1]);
 
   SDL_GL_SwapWindow(sdlWindow);
@@ -2173,6 +2174,7 @@ HACKY_COM_END()
 
 // IDirectDrawSurface4 -> STDMETHOD(Blt)(THIS_ LPRECT,LPDIRECTDRAWSURFACE4, LPRECT,DWORD, LPDDBLTFX) PURE; // 5
 HACKY_COM_BEGIN(IDirectDrawSurface4, 5)
+  hacky_printf("Blt\n");
   hacky_printf("p 0x%" PRIX32 "\n", stack[1]);
   hacky_printf("a 0x%" PRIX32 "\n", stack[2]);
   hacky_printf("b 0x%" PRIX32 "\n", stack[3]);
@@ -2180,7 +2182,7 @@ HACKY_COM_BEGIN(IDirectDrawSurface4, 5)
   hacky_printf("d 0x%" PRIX32 "\n", stack[5]);
   hacky_printf("e 0x%" PRIX32 "\n", stack[6]);
 
-  SDL_GL_SwapWindow(sdlWindow);
+  //SDL_GL_SwapWindow(sdlWindow);
 
   eax = 0; // FIXME: No idea what this expects to return..
   esp += 6 * 4;
@@ -2198,6 +2200,7 @@ HACKY_COM_END()
 
 // IDirectDrawSurface4 -> STDMETHOD(Flip)(THIS_ LPDIRECTDRAWSURFACE4, DWORD) PURE; // 11
 HACKY_COM_BEGIN(IDirectDrawSurface4, 11)
+  hacky_printf("Flip\n");
   hacky_printf("p 0x%" PRIX32 "\n", stack[1]);
   hacky_printf("a 0x%" PRIX32 "\n", stack[2]);
   hacky_printf("b 0x%" PRIX32 "\n", stack[3]);
