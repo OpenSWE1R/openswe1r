@@ -942,6 +942,11 @@ HACKY_IMPORT_BEGIN(CoInitialize)
   esp += 1 * 4;
 HACKY_IMPORT_END()
 
+HACKY_IMPORT_BEGIN(CoUninitialize)
+  eax = 0; // void
+  esp += 0 * 4;
+HACKY_IMPORT_END()
+
 HACKY_IMPORT_BEGIN(CoCreateInstance)
   hacky_printf("rclsid 0x%" PRIX32 "\n", stack[1]);
   hacky_printf("pUnkOuter 0x%" PRIX32 "\n", stack[2]);
@@ -984,6 +989,12 @@ HACKY_IMPORT_BEGIN(CoCreateInstance)
   } else if (!strcmp(clsidString, "92FA2C24-253C-11D2-90FB-006008A1F441")) {
     if (!strcmp(iidString, "E4C40280-CCBA-11D2-9DCF-00500411582F")) {
       strcpy(name, "IA3d4");
+    } else {
+      assert(false);
+    }
+  } else if (!strcmp(clsidString, "D1EB6D20-8923-11D0-9D97-00A0C90A43CB")) {
+    if (!strcmp(iidString, "0AB1C530-4745-11D1-A7A1-0000F803ABFC")) {
+      strcpy(name, "IDirectPlay4");
     } else {
       assert(false);
     }
@@ -1271,6 +1282,24 @@ HACKY_IMPORT_BEGIN(WaitForSingleObject)
 
   eax = 0; // DWORD (0 = "The state of the specified object is signaled.")
   esp += 2 * 4;
+HACKY_IMPORT_END()
+
+//FIXME: Should be atomic by definition in OpenSWE1R?
+HACKY_IMPORT_BEGIN(InterlockedIncrement)
+  hacky_printf("Addend 0x%" PRIX32 "\n", stack[1]);
+  uint32_t* Addend = (uint32_t*)Memory(stack[1]);
+  *Addend = *Addend + 1;
+  eax = *Addend;
+  esp += 1 * 4; // FIXME: MSDN claims cdecl?! asm looks like stdcall
+HACKY_IMPORT_END()
+
+//FIXME: Should be atomic by definition in OpenSWE1R?
+HACKY_IMPORT_BEGIN(InterlockedDecrement)
+  hacky_printf("Addend 0x%" PRIX32 "\n", stack[1]);
+  uint32_t* Addend = (uint32_t*)Memory(stack[1]);
+  *Addend = *Addend - 1;
+  eax = *Addend;
+  esp += 1 * 4; // FIXME: MSDN claims cdecl?! asm looks like stdcall
 HACKY_IMPORT_END()
 
 HACKY_IMPORT_BEGIN(GetCurrentThread)

@@ -8,11 +8,18 @@ set(CMAKE_C_STANDARD 11)
 
 set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_SOURCE_DIR}/cmake/")
 
+find_package(ENet)
 find_package(Unicorn REQUIRED)
 find_package(OpenGL REQUIRED)
 find_package(GLEW REQUIRED)
 find_package(SDL2 REQUIRED)
 find_package(OpenAL REQUIRED)
+
+if(ENET_FOUND)
+  include_directories(SYSTEM
+    ${ENET_INCLUDE_DIR}
+  )
+endif()
 
 include_directories(SYSTEM
   ${LIBUNICORN_INCLUDE_DIR}
@@ -42,6 +49,13 @@ if(USE_VM)
 else()
   target_link_libraries(openswe1r
     ${LIBUNICORN_LIBRARY}
+  )
+endif()
+
+if(ENET_FOUND)
+  target_compile_definitions(openswe1r PUBLIC -DDPLAY_ENET)
+  target_link_libraries(openswe1r
+    ${ENET_LIBRARIES}
   )
 endif()
 
