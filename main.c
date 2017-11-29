@@ -3526,6 +3526,14 @@ HACKY_COM_BEGIN(IA3dSource, 14)
   esp += 1 * 4;
 HACKY_COM_END()
 
+// IA3dSource -> STDMETHOD(Rewind)					(THIS) PURE; // 15
+HACKY_COM_BEGIN(IA3dSource, 15)
+  hacky_printf("Rewind\n");
+  hacky_printf("p 0x%" PRIX32 "\n", stack[1]);
+  eax = 0;
+  esp += 1 * 4;
+HACKY_COM_END()
+
 // IA3dSource -> STDMETHOD(SetPosition3f)			(THIS_ A3DVAL, A3DVAL, A3DVAL) PURE; // 20
 HACKY_COM_BEGIN(IA3dSource, 20)
   hacky_printf("SetPosition3f\n");
