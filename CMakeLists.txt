@@ -27,6 +27,7 @@ add_executable(openswe1r
 
   dll/kernel32.c
 
+  com/a3d.c
   com/dplay.c
 )
 
