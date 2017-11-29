@@ -29,6 +29,8 @@ static SDL_Window* sdlWindow;
 #include "com/ddraw.h"
 #include "com/dinput.h"
 
+Address return0 = 0;
+
 uint32_t callId = 0;
 
 typedef struct {
@@ -3671,6 +3673,14 @@ int main(int argc, char* argv[]) {
     printf("Couldn't load '%s'\n", exeName);
   }
   RelocateExe(exe);
+
+#if 1
+  return0 = Allocate(3);
+  printf("Returning 0x%08X\n", return0);
+  uint8_t* p = Memory(return0);
+  *p++ = 0x31; *p++ = 0xC0; // xor eax, eax
+  *p++ = 0xC3;              // ret
+#endif
 
 // 0x90 = nop (used to disable code)
 // 0xC3 = ret (used to skip function)
