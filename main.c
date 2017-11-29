@@ -3590,6 +3590,44 @@ HACKY_COM_BEGIN(IA3dSource, 59)
 HACKY_COM_END()
 
 
+// IA3dListener -> STDMETHOD(SetPosition3f)		(THIS_ A3DVAL, A3DVAL, A3DVAL) PURE; // 3
+HACKY_COM_BEGIN(IA3dListener, 3)
+  hacky_printf("SetPosition3f\n");
+  hacky_printf("p 0x%" PRIX32 "\n", stack[1]);
+  hacky_printf("a 0x%" PRIX32 "\n", stack[2]);
+  hacky_printf("b 0x%" PRIX32 "\n", stack[3]);
+  hacky_printf("c 0x%" PRIX32 "\n", stack[4]);
+  eax = 0;
+  esp += 4 * 4;
+HACKY_COM_END()
+
+// IA3dListener -> STDMETHOD(SetOrientation6f)		(THIS_ A3DVAL, A3DVAL, A3DVAL, A3DVAL, A3DVAL, A3DVAL) PURE; // 11
+HACKY_COM_BEGIN(IA3dListener, 11)
+  hacky_printf("SetOrientation6f\n");
+  hacky_printf("p 0x%" PRIX32 "\n", stack[1]);
+  hacky_printf("a 0x%" PRIX32 "\n", stack[2]);
+  hacky_printf("b 0x%" PRIX32 "\n", stack[3]);
+  hacky_printf("c 0x%" PRIX32 "\n", stack[4]);
+  hacky_printf("d 0x%" PRIX32 "\n", stack[5]);
+  hacky_printf("e 0x%" PRIX32 "\n", stack[6]);
+  hacky_printf("f 0x%" PRIX32 "\n", stack[7]);
+  eax = 0;
+  esp += 7 * 4;
+HACKY_COM_END()
+
+// IA3dListener -> STDMETHOD(SetVelocity3f)		(THIS_ A3DVAL, A3DVAL, A3DVAL) PURE; // 15
+HACKY_COM_BEGIN(IA3dListener, 15)
+  hacky_printf("SetVelocity3f\n");
+  hacky_printf("p 0x%" PRIX32 "\n", stack[1]);
+  hacky_printf("a 0x%" PRIX32 "\n", stack[2]);
+  hacky_printf("b 0x%" PRIX32 "\n", stack[3]);
+  hacky_printf("c 0x%" PRIX32 "\n", stack[4]);
+  eax = 0;
+  esp += 4 * 4;
+HACKY_COM_END()
+
+
+
 static void UcMallocHook(void* uc, uint64_t address, uint32_t size, void* user_data) {
   int eip;
   uc_reg_read(uc, UC_X86_REG_EIP, &eip);
