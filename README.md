@@ -53,6 +53,7 @@ For now, the goal is to support the x86 Windows Version of the game.
 * [SDL2](https://www.libsdl.org/)
 * [GLEW](http://glew.sourceforge.net/)
 * [DevIL](http://openil.sourceforge.net/)
+* [OpenAL](https://www.openal.org/)
 
 ### Building
 
