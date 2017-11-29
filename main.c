@@ -3518,6 +3518,47 @@ HACKY_COM_BEGIN(IA3dSource, 13)
   esp += 2 * 4;
 HACKY_COM_END()
 
+// IA3dSource -> STDMETHOD(Stop)						(THIS) PURE; // 14
+HACKY_COM_BEGIN(IA3dSource, 14)
+  hacky_printf("Stop\n");
+  hacky_printf("p 0x%" PRIX32 "\n", stack[1]);
+  eax = 0;
+  esp += 1 * 4;
+HACKY_COM_END()
+
+// IA3dSource -> STDMETHOD(SetPosition3f)			(THIS_ A3DVAL, A3DVAL, A3DVAL) PURE; // 20
+HACKY_COM_BEGIN(IA3dSource, 20)
+  hacky_printf("SetPosition3f\n");
+  hacky_printf("p 0x%" PRIX32 "\n", stack[1]);
+  hacky_printf("a 0x%" PRIX32 "\n", stack[2]);
+  hacky_printf("b 0x%" PRIX32 "\n", stack[3]);
+  hacky_printf("c 0x%" PRIX32 "\n", stack[4]);
+  eax = 0;
+  esp += 4 * 4;
+HACKY_COM_END()
+
+// IA3dSource -> STDMETHOD(SetVelocity3f)			(THIS_ A3DVAL, A3DVAL, A3DVAL) PURE; // 32
+HACKY_COM_BEGIN(IA3dSource, 32)
+  hacky_printf("SetVelocity3f\n");
+  hacky_printf("p 0x%" PRIX32 "\n", stack[1]);
+  hacky_printf("a 0x%" PRIX32 "\n", stack[2]);
+  hacky_printf("b 0x%" PRIX32 "\n", stack[3]);
+  hacky_printf("c 0x%" PRIX32 "\n", stack[4]);
+  eax = 0;
+  esp += 4 * 4;
+HACKY_COM_END()
+
+// IA3dSource -> STDMETHOD(SetMinMaxDistance)		(THIS_ A3DVAL, A3DVAL, DWORD) PURE; // 38
+HACKY_COM_BEGIN(IA3dSource, 38)
+  hacky_printf("SetMinMaxDistance\n");
+  hacky_printf("p 0x%" PRIX32 "\n", stack[1]);
+  hacky_printf("a 0x%" PRIX32 "\n", stack[2]);
+  hacky_printf("b 0x%" PRIX32 "\n", stack[3]);
+  hacky_printf("c 0x%" PRIX32 "\n", stack[4]);
+  eax = 0;
+  esp += 4 * 4;
+HACKY_COM_END()
+
 // IA3dSource -> STDMETHOD(SetGain)					(THIS_ A3DVAL) PURE; // 40
 HACKY_COM_BEGIN(IA3dSource, 40)
   hacky_printf("SetGain\n");
@@ -3530,6 +3571,15 @@ HACKY_COM_END()
 // IA3dSource -> STDMETHOD(SetPitch)					(THIS_ A3DVAL) PURE; // 42
 HACKY_COM_BEGIN(IA3dSource, 42)
   hacky_printf("SetPitch\n");
+  hacky_printf("p 0x%" PRIX32 "\n", stack[1]);
+  hacky_printf("a 0x%" PRIX32 "\n", stack[2]);
+  eax = 0;
+  esp += 2 * 4;
+HACKY_COM_END()
+
+// IA3dSource -> STDMETHOD(SetDopplerScale)			(THIS_ A3DVAL) PURE; // 44
+HACKY_COM_BEGIN(IA3dSource, 44)
+  hacky_printf("SetDopplerScale\n");
   hacky_printf("p 0x%" PRIX32 "\n", stack[1]);
   hacky_printf("a 0x%" PRIX32 "\n", stack[2]);
   eax = 0;
@@ -3588,6 +3638,16 @@ HACKY_COM_BEGIN(IA3dSource, 59)
   eax = 0;
   esp += 3 * 4;
 HACKY_COM_END()
+
+// IA3dSource -> STDMETHOD(SetTransformMode)			(THIS_ DWORD) PURE; // 61
+HACKY_COM_BEGIN(IA3dSource, 61)
+  hacky_printf("SetTransformMode\n");
+  hacky_printf("p 0x%" PRIX32 "\n", stack[1]);
+  hacky_printf("a 0x%" PRIX32 "\n", stack[2]);
+  eax = 0;
+  esp += 2 * 4;
+HACKY_COM_END()
+
 
 
 // IA3dListener -> STDMETHOD(SetPosition3f)		(THIS_ A3DVAL, A3DVAL, A3DVAL) PURE; // 3
