@@ -31,6 +31,9 @@ void* Memory(uint32_t address);
 void CreateBreakpoint(uint32_t address, void* callback, void* user);
 Address CreateCallback(void* callback, void* user);
 
+Address CreateOut();
+void AddOutHandler(Address address, void(*callback)(void* uc, uint64_t address, uint32_t size, void* user_data), void* user_data);
+
 // Thread API
 
 unsigned int CreateEmulatedThread(uint32_t eip);
