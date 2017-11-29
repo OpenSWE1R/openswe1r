@@ -6,6 +6,35 @@
 #include <assert.h>
 #include <string.h>
 
+#include "al.h"
+#include "alc.h"
+
+
+typedef struct {
+  void* vtable;
+  ALCdevice *device;
+  ALCcontext *context;
+} A3d4;
+
+
+typedef struct {
+  uint16_t wFormatTag;
+  uint16_t nChannels;
+  uint32_t nSamplesPerSec;
+  uint32_t nAvgBytesPerSec;
+  uint16_t nBlockAlign;
+  uint16_t wBitsPerSample;
+  uint16_t cbSize;
+} WAVEFORMATEX;
+
+typedef struct {
+  void* vtable;
+  ALuint al_source;
+  ALuint al_buffer;
+  WAVEFORMATEX fmt;
+  Address data;
+} A3DSOURCE;
+
 #if 0
 DECLARE_INTERFACE_(IA3d4, IUnknown)
 {
@@ -223,6 +252,19 @@ HACKY_COM_BEGIN(IA3d4, 15)
   hacky_printf("a 0x%" PRIX32 "\n", stack[2]);
   hacky_printf("b 0x%" PRIX32 "\n", stack[3]);
   hacky_printf("c 0x%" PRIX32 "\n", stack[4]);
+
+  A3d4* this = Memory(stack[1]);
+
+  this->device = alcOpenDevice(NULL);
+  assert(this->device != NULL);
+
+  this->context = alcCreateContext(this->device, NULL);
+
+  //FIXME: Do this on every call which uses this context instead
+  if (!alcMakeContextCurrent(this->context)) {
+    assert(false);
+  }
+
   eax = 0;
   esp += 4 * 4;
 HACKY_COM_END()
@@ -234,7 +276,26 @@ HACKY_COM_BEGIN(IA3d4, 17)
   hacky_printf("a 0x%" PRIX32 "\n", stack[2]);
   hacky_printf("b 0x%" PRIX32 "\n", stack[3]);
 
-  *(Address*)Memory(stack[3]) = CreateInterface("IA3dSource", 200);
+  Address addr = CreateInterface("IA3dSource", 200);
+  
+  A3DSOURCE* source = Memory(addr);
+  alGenSources(1, &source->al_source);
+  alGenBuffers(1, &source->al_buffer);
+
+
+//FIXME: Move these to proper functions, unless we need defaults
+
+alSourcef(source->al_source, AL_PITCH, 1);
+// check for errors
+alSourcef(source->al_source, AL_GAIN, 1);
+// check for errors
+alSource3f(source->al_source, AL_POSITION, 0, 0, 0);
+// check for errors
+alSource3f(source->al_source, AL_VELOCITY, 0, 0, 0);
+// check for errors
+alSourcei(source->al_source, AL_LOOPING, AL_FALSE);
+
+  *(Address*)Memory(stack[3]) = addr;  
 
   eax = 0;
   esp += 3 * 4;
@@ -335,6 +396,11 @@ HACKY_COM_BEGIN(IA3dSource, 5)
   hacky_printf("AllocateWaveData\n");
   hacky_printf("p 0x%" PRIX32 "\n", stack[1]);
   hacky_printf("a 0x%" PRIX32 "\n", stack[2]);
+
+  // a = size?
+  A3DSOURCE* this = Memory(stack[1]);
+  this->data = Allocate(stack[2]);
+
   eax = 0;
   esp += 2 * 4;
 HACKY_COM_END()
@@ -344,6 +410,10 @@ HACKY_COM_BEGIN(IA3dSource, 7)
   hacky_printf("SetWaveFormat\n");
   hacky_printf("p 0x%" PRIX32 "\n", stack[1]);
   hacky_printf("a 0x%" PRIX32 "\n", stack[2]);
+
+  A3DSOURCE* this = Memory(stack[1]);
+  memcpy(&this->fmt, Memory(stack[2]), sizeof(WAVEFORMATEX));
+
   eax = 0;
   esp += 2 * 4;
 HACKY_COM_END()
@@ -374,7 +444,10 @@ HACKY_COM_BEGIN(IA3dSource, 11)
 
   assert(stack[8] == 0);
 
-  *(Address*)Memory(stack[4]) = Allocate(stack[3]);
+  A3DSOURCE* this = Memory(stack[1]);
+
+  //FIXME: assert that the requested length is shorter than the buffer len etc.
+  *(Address*)Memory(stack[4]) = this->data;
   *(uint32_t*)Memory(stack[5]) = stack[3];
 
   // Check if we can write a second buffer
@@ -396,14 +469,38 @@ HACKY_COM_BEGIN(IA3dSource, 12)
   hacky_printf("c 0x%" PRIX32 "\n", stack[4]);
   hacky_printf("d 0x%" PRIX32 "\n", stack[5]);
 
-  //FIXME: Upload to OpenAL or something
+  A3DSOURCE* this = Memory(stack[1]);
+  ALenum al_format; 
+  if (this->fmt.nChannels == 1) {
+    if (this->fmt.wBitsPerSample == 8) {
+      al_format = AL_FORMAT_MONO8;
+    } else if (this->fmt.wBitsPerSample == 16) {
+      al_format = AL_FORMAT_MONO16;
+    } else {
+      assert(false);
+    }
+  } else if (this->fmt.nChannels == 2) {
+    if (this->fmt.wBitsPerSample == 8) {
+      al_format = AL_FORMAT_STEREO8;
+    } else if (this->fmt.wBitsPerSample == 16) {
+      al_format = AL_FORMAT_STEREO16;
+    } else {
+      assert(false);
+    }
+  } else {
+    assert(false);
+  }
 
-  if (stack[2]) {
-    Free(stack[2]);
-  }
-  if (stack[4]) {
-    Free(stack[4]);
-  }
+  assert(this->fmt.wFormatTag == 0x0001);
+  assert(this->fmt.nBlockAlign == (this->fmt.nChannels * this->fmt.wBitsPerSample / 8));
+
+  alBufferData(this->al_buffer, al_format, Memory(stack[2]), stack[3], this->fmt.nSamplesPerSec);
+
+  //FIXME: assert that this source isn't already playing etc.
+  alSourcei(this->al_source, AL_BUFFER, this->al_buffer);
+
+  assert(stack[4] == 0);
+  assert(stack[5] == 0);
 
   eax = 0;
   esp += 5 * 4;
@@ -414,6 +511,9 @@ HACKY_COM_BEGIN(IA3dSource, 13)
   hacky_printf("Play\n");
   hacky_printf("p 0x%" PRIX32 "\n", stack[1]);
   hacky_printf("a 0x%" PRIX32 "\n", stack[2]);
+  A3DSOURCE* this = Memory(stack[1]);
+  //FIXME: Set looping
+  alSourcePlay(this->al_source);
   eax = 0;
   esp += 2 * 4;
 HACKY_COM_END()
@@ -422,6 +522,8 @@ HACKY_COM_END()
 HACKY_COM_BEGIN(IA3dSource, 14)
   hacky_printf("Stop\n");
   hacky_printf("p 0x%" PRIX32 "\n", stack[1]);
+  A3DSOURCE* this = Memory(stack[1]);
+  alSourceStop(this->al_source);
   eax = 0;
   esp += 1 * 4;
 HACKY_COM_END()
@@ -430,6 +532,8 @@ HACKY_COM_END()
 HACKY_COM_BEGIN(IA3dSource, 15)
   hacky_printf("Rewind\n");
   hacky_printf("p 0x%" PRIX32 "\n", stack[1]);
+  A3DSOURCE* this = Memory(stack[1]);
+  alSourcei(this->al_source, AL_BYTE_OFFSET, 0);
   eax = 0;
   esp += 1 * 4;
 HACKY_COM_END()
