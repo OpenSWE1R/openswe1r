@@ -1888,28 +1888,35 @@ HACKY_COM_BEGIN(IDirectDraw4, 8)
   hacky_printf("p 0x%" PRIX32 "\n", stack[1]);
   hacky_printf("a 0x%" PRIX32 "\n", stack[2]);
   hacky_printf("b 0x%" PRIX32 "\n", stack[3]);
-  hacky_printf("c 0x%" PRIX32 "\n", stack[4]);
+  uint32_t c = stack[4];
+  hacky_printf("c 0x%" PRIX32 "\n", c);
   hacky_printf("d 0x%" PRIX32 "\n", d);
   eax = 0; // FIXME: No idea what this expects to return..
   esp += 5 * 4;
   // Push a call to the callback onto the stack.. this is some ugly hack..
   {
     esp -= 4;
-    *(uint32_t*)Memory(esp) = stack[4]; // user pointer
-    esp -= 4;
+    *(uint32_t*)Memory(esp) = c; // user pointer
+
     Address descAddress = Allocate(sizeof(DDSURFACEDESC2));
     DDSURFACEDESC2* desc = Memory(descAddress);
     desc->ddpfPixelFormat.dwFlags = DDPF_RGB;
     desc->ddpfPixelFormat.dwRGBBitCount = 24;
+    desc->ddpfPixelFormat.dwRBitMask = 0x00FF0000;
+    desc->ddpfPixelFormat.dwGBitMask = 0x0000FF00;
+    desc->ddpfPixelFormat.dwBBitMask = 0x000000FF;
     desc->dwWidth = 640;
     desc->dwHeight = 480;
-    desc->lpSurface = 0x01010101;
+    desc->lPitch = 640*3; //FIXME: Or do I need linearsize?!
+
+    esp -= 4;
     *(uint32_t*)Memory(esp) = descAddress; // DDSURFACEDESC2*
 
     // Emulate the call
     esp -= 4;
     *(uint32_t*)Memory(esp) = returnAddress; // Return where this was supposed to return to
     eip = d;
+
     printf("  Callback at 0x%" PRIX32 "\n", eip);
     //FIXME: Add a hook which returns 0
   }
