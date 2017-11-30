@@ -3671,10 +3671,12 @@ int main(int argc, char* argv[]) {
 // 0x75 = jne (probably used to be `je`, used to invert condition)
 
 // These functions access internal FILE* data I belive; crashes our emu
+#if 0
 *(uint8_t*)Memory(0x4A1670) = 0xC3; // _lock
 *(uint8_t*)Memory(0x4A16F0) = 0xC3; // _unlock
 *(uint8_t*)Memory(0x4A1710) = 0xC3; // _lock_file
 *(uint8_t*)Memory(0x4A1780) = 0xC3; // _unlock_file
+#endif
 
 #if 0 //FIXME FIXME FIXME FIXME FIXME
   // These do something bad internally
