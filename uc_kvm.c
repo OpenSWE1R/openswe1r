@@ -183,7 +183,8 @@ uc_err uc_open(uc_arch arch, uc_mode mode, uc_engine **uc) {
 
 
   // Load a small bios which boots CPU into protected mode
-  uint8_t* bios = memalign(0x100000, bios_size);
+  uint8_t *bios;
+  assert(posix_memalign((void **)&bios, 0x100000, bios_size) == 0);
   FILE* f = fopen("uc_kvm_loader", "rb");
   assert(f != NULL);
   fread(bios, 1, bios_size, f);

@@ -20,6 +20,7 @@ Main project site: https://github.com/jtsiomb/c11threads
 #include <pthread.h>
 #include <sched.h>	/* for sched_yield */
 #include <sys/time.h>
+#include <assert.h>
 
 #define ONCE_FLAG_INIT	PTHREAD_ONCE_INIT
 
@@ -121,7 +122,12 @@ static inline int mtx_init(mtx_t *mtx, int type)
 	pthread_mutexattr_init(&attr);
 
 	if(type & mtx_timed) {
+#ifdef __APPLE__
+		// PTHREAD_MUTEX_TIMED_NP not supported on macOS
+		assert(0);
+#else
 		pthread_mutexattr_settype(&attr, PTHREAD_MUTEX_TIMED_NP);
+#endif
 	}
 	if(type & mtx_recursive) {
 		pthread_mutexattr_settype(&attr, PTHREAD_MUTEX_RECURSIVE);
