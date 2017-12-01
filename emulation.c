@@ -193,8 +193,8 @@ Address Allocate(Size size) {
 
 #if 1
 //FIXME: This is a hack to fix alignment + to avoid too small allocations
-address += 0x200;
-address &= 0xFFFFFF00;
+address += 0x1000;
+address &= 0xFFFFF000;
 #endif
 
   return ret;
