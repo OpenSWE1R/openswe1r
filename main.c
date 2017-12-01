@@ -1533,7 +1533,24 @@ HACKY_IMPORT_BEGIN(FindFirstFileA)
   hacky_printf("lpFileName 0x%" PRIX32 " ('%s')\n", stack[1], pattern);
   hacky_printf("lpFindFileData 0x%" PRIX32 "\n", stack[2]);
 //dwFileAttributes
-   if (!strcmp(".\\data\\player\\*.sav", pattern)) {
+  char* wildcard1 = strchr(pattern, '*');
+  char* wildcard2 = strchr(pattern, '?');
+  if ((wildcard1 == NULL) && (wildcard2 == NULL)) {
+    // It's asking explicitly for one file..
+    static char foundFile[128];
+    if ((pattern[0] == '.') && (pattern[1] == '\\')) {
+      pattern = &pattern[2];
+    } else {
+      assert(false);
+    }
+    strcpy(foundFile, pattern);
+    static const char* passthrough[] = {
+      ".", "..",
+      foundFile,
+      NULL
+    };
+    dirlisting = passthrough;
+  } else if (!strcmp(".\\data\\player\\*.sav", pattern)) {
     static const char* profiles[] = {
       ".", "..",
       "anakin.sav",
