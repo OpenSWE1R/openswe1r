@@ -26,9 +26,8 @@ void* Memory(uint32_t address);
 
 // Hook API
 
-// If size is 0 this is a code hook
-//FIXME: Use proper type for callback!
-void CreateBreakpoint(uint32_t address, void* callback, void* user);
+Address CreateHlt();
+void AddHltHandler(Address address, void(*callback)(void* uc, Address address, void* user_data), void* user_data);
 Address CreateCallback(void* callback, void* user);
 
 // Thread API

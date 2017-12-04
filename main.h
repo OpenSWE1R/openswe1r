@@ -21,13 +21,13 @@ Address CreateInterface(const char* name, unsigned int slotCount);
 void AddExport(const char* name, void* callback, Address address);
 
 #define HACKY_IMPORT_BEGIN(_name) \
-  static void Hook_ ## _name (void* uc, uint64_t address, uint32_t _size, void* user_data); \
+  static void Hook_ ## _name (void* uc, Address address, void* user_data); \
   __attribute__((constructor)) static void Register_ ## _name () { \
     const char* name = #_name; \
     printf("Registering hook for '%s'\n", name); \
     AddExport(name, Hook_ ## _name, 0); \
   } \
-  static void Hook_ ## _name (void* uc, uint64_t _address, uint32_t _size, void* _user_data) { \
+  static void Hook_ ## _name (void* uc, Address _address, void* _user_data) { \
     bool silent = false; \
     \
     int eip; \

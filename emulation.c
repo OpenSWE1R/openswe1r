@@ -229,64 +229,43 @@ void* Memory(uint32_t address) {
   return NULL;
 }
 
-void CreateBreakpoint(uint32_t address, void* callback, void* user) {
-  //FIXME: Loop over imports?!
-  assert(false);
-#if 0
-#ifdef UC_KVM
-  assert(false);
-#endif
-  uc_hook importHook;
-  uc_hook_add(uc, &importHook, UC_HOOK_BLOCK /*UC_HOOK_CODE*/, callback, user, address, address);
-#endif
-}
-
-Address CreateOut() {
+Address CreateHlt() {
   Address code_address = Allocate(2);
   uint8_t* code = Memory(code_address);
-  *code++ = 0xEE; // OUT DX, AL
+  *code++ = 0xF4; // HLT
   //FIXME: Are changes to regs even registered here?!
   *code++ = 0xC3; // End block with RET
   return code_address;
 }
 
-typedef struct _OutHandler {
-  struct _OutHandler* next;
+typedef struct {
   Address address;
-  void(*callback)(void* uc, uint64_t address, uint32_t size, void* user_data);
+  void(*callback)(void* uc, Address address, void* user_data);
   void* user_data;
-} OutHandler;
-OutHandler* outHandlers = NULL;
+} HltHandler;
+HltHandler* hltHandlers = NULL;
+unsigned int hltHandlerCount = 0;
 
-static void outHookHandler(uc_engine *uc, uint32_t port, int size, uint32_t value, void *user_data) {
-  int eip;
-  uc_reg_read(uc, UC_X86_REG_EIP, &eip);
-
-  OutHandler* outHandler = outHandlers;
-  while(outHandler != NULL) {
-    if (outHandler->address == eip) {
-      outHandler->callback(uc, outHandler->address, 0, outHandler->user_data);
-    }
-    outHandler = outHandler->next;
-  }
+int compareHltHandlers(const void * a, const void * b) {
+  return ((HltHandler*)a)->address - ((HltHandler*)b)->address;
 }
 
-void AddOutHandler(Address address, void(*callback)(void* uc, uint64_t address, uint32_t size, void* user_data), void* user_data) {
-  OutHandler* outHandler = malloc(sizeof(OutHandler));
-  outHandler->address = address;
-  outHandler->callback = callback;
-  outHandler->user_data = user_data;
-  outHandler->next = outHandlers;
-  outHandlers = outHandler;
+HltHandler* findHltHandler(Address address) {
+  return bsearch(&address, hltHandlers, hltHandlerCount, sizeof(HltHandler), compareHltHandlers);
+}
 
-  uc_hook outHook;
-  uc_hook_add(uc, &outHook, UC_HOOK_INSN, outHookHandler, user_data, address, address, UC_X86_INS_OUT);
+void AddHltHandler(Address address, void(*callback)(void* uc, Address address, void* user_data), void* user_data) {
+  HltHandler* handler = findHltHandler(address);
+  assert(handler == NULL); // Currently only supporting one handler
 
-#if 0
-#ifndef UC_KVM
-  CreateBreakpoint(address, callback, user_data);
-#endif
-#endif
+  hltHandlers = realloc(hltHandlers, ++hltHandlerCount * sizeof(HltHandler));
+  handler = &hltHandlers[hltHandlerCount - 1];
+  handler->address = address;
+  handler->callback = callback;
+  handler->user_data = user_data;
+
+  // Resort the array, it will be binary-searched later
+  qsort(hltHandlers, hltHandlerCount, sizeof(HltHandler), compareHltHandlers);
 }
 
 #if 0
@@ -471,7 +450,6 @@ static int SliceThread(void* userData) {
 
 void RunEmulation() {
   uc_err err;
-
   thrd_t sliceThread;
   int tret = thrd_create(&sliceThread, SliceThread, NULL);
 
@@ -493,22 +471,39 @@ void RunEmulation() {
     }
 
     TransferContext(ctx, true);
-    err = uc_emu_start(uc, ctx->eip, 0, 0, 0);
+
+    while(true) {
+      err = uc_emu_start(uc, ctx->eip, 0, 0, 0);
+
+      // Check for errors
+      if (err != 0) {
+        break;
+      }
+
+      uc_reg_read(uc, UC_X86_REG_EIP, &ctx->eip);
+
+      Address hltAddress = ctx->eip - 1;
+      assert(*(uint8_t*)Memory(hltAddress) == 0xF4);
+
+      HltHandler* hltHandler = findHltHandler(hltAddress);
+      if(hltHandler != NULL) {
+        hltHandler->callback(uc, hltHandler->address, hltHandler->user_data);
+      }
+
+      //Hack: Manually transfers EIP (might have been changed in callback)
+      uc_reg_read(uc, UC_X86_REG_EIP, &ctx->eip);
+    }
 
     // threads array might be relocated if a thread was modified in a callback; update ctx pointer
     ctx = &threads[currentThread];
 
-    if (err) {
+    TransferContext(ctx, false);
+
+    if (err != 0) {
       printf("Failed on uc_emu_start() with error returned %u: %s\n", err, uc_strerror(err));
-
-      ThreadContext ctx;
-      TransferContext(&ctx, false);
-      PrintContext(&ctx);
-
+      PrintContext(ctx);
       assert(false);
     }
-
-    TransferContext(ctx, false);
 
     printf("\n\n\n\n\nEmulation slice completed for thread %d (Count: %d) with %d at 0x%X\n", currentThread, threadCount, err, ctx->eip);
 
