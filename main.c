@@ -3727,8 +3727,9 @@ int main(int argc, char* argv[]) {
     GLuint fragmentShader = CreateShader(FragmentShader1Texture, GL_FRAGMENT_SHADER);
     shader1Texture = CreateShaderProgram(vertexShader, fragmentShader);
   }
-  LinkShaderProgram(shader1Texture);
+  bool linked = LinkShaderProgram(shader1Texture);
   PrintShaderProgramLog(shader1Texture);
+  assert(linked);
   glUseProgram(shader1Texture); //FIXME: Hack..
   printf("-- Loading exe\n");
   Exe* exe = LoadExe(exeName);
