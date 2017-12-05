@@ -7,11 +7,6 @@
 #include <stdlib.h>
 #include <inttypes.h>
 #include <assert.h>
-#if __STDC_NO_THREADS__
-#include "c11threads.h"
-#else
-#include <threads.h>
-#endif
 #include <malloc.h>
 
 #include "SDL.h"
@@ -440,20 +435,8 @@ static unsigned int GetThreadCount() {
   return threadCount;
 }
 
-static int SliceThread(void* userData) {
-  while(GetThreadCount() > 0) {
-    // Run in 500ms timeslices, we don't use the shitty UC feature because it can't handle "while(1);"
-    //FIXME: Disabled because it caused crashes
-    //uc_emu_stop(uc);
-    //thrd_sleep(&(struct timespec){.tv_nsec=500*1000*1000}, NULL);
-    thrd_sleep(&(struct timespec){.tv_sec=5}, NULL);
-  }
-}
-
 void RunEmulation() {
   uc_err err;
-  thrd_t sliceThread;
-  int tret = thrd_create(&sliceThread, SliceThread, NULL);
 
   //FIXME: plenty of options to optimize in single threaded mode.. (register readback not necessary etc.)
   while(GetThreadCount() > 0) {
@@ -512,9 +495,6 @@ void RunEmulation() {
     PrintContext(ctx);
     printf("\n\n\n\n\n");
   }
-  
-  tret = thrd_join(sliceThread, NULL);
-
 }
 
 void CleanupEmulation(void) {
