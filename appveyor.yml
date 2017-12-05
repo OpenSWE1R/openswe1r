@@ -1,0 +1,62 @@
+# shallow clone
+clone_depth: 10
+
+cache:
+  - C:\tools\vcpkg\installed\
+
+os: Visual Studio 2017
+
+environment:
+  # Tell MSYS2 to inherit the current directory when starting the shell
+  CHERE_INVOKING: 1
+  matrix:
+    - platform: x64
+      BUILD_TYPE: mingw
+      MSYSTEM: MINGW64
+    - platform: x64
+      BUILD_TYPE: msvc
+      VCPKG_DEFAULT_TRIPLET: x64-windows
+
+configuration:
+  - Release
+
+install:
+  - git submodule update --init --recursive
+  - ps: |
+        if ($env:BUILD_TYPE -eq 'mingw') {
+          # redirect err to null to prevent warnings from becoming errors
+          C:\msys64\usr\bin\bash -lc "pacman --noconfirm -S mingw-w64-x86_64-SDL2 mingw-w64-x86_64-glew mingw-w64-x86_64-openal mingw-w64-x86_64-enet 2>&1"
+          # install unicorn from source
+          mkdir unicorn
+          cd unicorn
+          Start-FileDownload 'https://raw.githubusercontent.com/Alexpux/MINGW-packages/master/mingw-w64-unicorn/PKGBUILD'
+          C:\msys64\usr\bin\bash -lc "MINGW_INSTALLS=mingw64 makepkg-mingw -sLf -i --noconfirm  2>&1"
+          cd ..
+          # stick to cmake 3.9.6 since on lower versions it could happen that cmake generates a Makefile that links against gcc_eh
+          C:\msys64\usr\bin\bash -lc "pacman --noconfirm -U http://repo.msys2.org/mingw/x86_64/mingw-w64-x86_64-cmake-3.9.6-1-any.pkg.tar.xz 2>&1"
+        } else {
+          mkdir C:\tools\vcpkg\ports\unicorn\
+          Start-FileDownload 'https://raw.githubusercontent.com/Microsoft/vcpkg/8766979444d7652b5c170b487ac39391d85b292e/ports/unicorn/CONTROL' -FileName C:\tools\vcpkg\ports\unicorn\CONTROL
+          Start-FileDownload 'https://raw.githubusercontent.com/Microsoft/vcpkg/8766979444d7652b5c170b487ac39391d85b292e/ports/unicorn/portfile.cmake' -FileName C:\tools\vcpkg\ports\unicorn\portfile.cmake
+          vcpkg install unicorn sdl2 glew openal-soft enet
+        }
+
+before_build:
+  - mkdir %BUILD_TYPE%_build
+  - cd %BUILD_TYPE%_build
+  - ps: |
+        if ($env:BUILD_TYPE -eq 'mingw') {
+          C:\msys64\usr\bin\bash.exe -lc "cmake -G 'MSYS Makefiles' -DCMAKE_BUILD_TYPE=Release .. 2>&1"
+        } else {
+          # redirect stderr and change the exit code to prevent powershell from cancelling the build if cmake prints a warning
+          cmd /C 'cmake -G "Visual Studio 15 2017 Win64" -DCMAKE_TOOLCHAIN_FILE=C:/tools/vcpkg/scripts/buildsystems/vcpkg.cmake .. 2>&1 && exit 0'
+        }
+  - cd ..
+
+build_script:
+  - ps: |
+        if ($env:BUILD_TYPE -eq 'mingw') {
+          C:\msys64\usr\bin\bash.exe -lc 'mingw32-make -j4 -C mingw_build/ 2>&1'
+        } else {
+          msbuild msvc_build/openswe1r.sln /maxcpucount /logger:"C:\Program Files\AppVeyor\BuildAgent\Appveyor.MSBuildLogger.dll"
+        }
