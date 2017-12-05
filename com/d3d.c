@@ -1,3 +1,5 @@
+#include "../emulation.h"
+
 typedef struct {
   uint32_t dwSize;
   uint32_t dwFlags;
@@ -42,7 +44,7 @@ typedef struct {
     uint32_t dwRGBZBitMask;
     uint32_t dwYUVZBitMask;
   } dummy5;
-} DDPIXELFORMAT;
+} API(DDPIXELFORMAT);
 
 #if 0
 
