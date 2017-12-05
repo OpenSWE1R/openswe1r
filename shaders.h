@@ -51,7 +51,7 @@ static const char* FragmentShader1Texture =
 #endif
 "\n"
 "void main() {\n"
-"  color = texture2D(tex0, vec2(uv0.x, uv0.y));\n"
+"  color = texture(tex0, uv0);\n"
 "  color *= diffuse;\n"
 "}\n";
 
