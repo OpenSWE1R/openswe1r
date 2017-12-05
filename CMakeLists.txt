@@ -1,6 +1,9 @@
 cmake_minimum_required(VERSION 3.1)
 project(OpenSWE1R)
 
+option(USE_VM "Use hardware virtualization backend for Unicorn-Engine" OFF)
+
+
 set(CMAKE_C_STANDARD 11)
 
 set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_SOURCE_DIR}/cmake/")
@@ -33,7 +36,7 @@ add_executable(openswe1r
   com/dplay.c
 )
 
-if(FALSE)
+if(USE_VM)
   target_compile_definitions(openswe1r PUBLIC -DUC_KVM)
   target_sources(openswe1r PUBLIC
     uc_kvm.c

@@ -33,7 +33,7 @@ uint32_t callId = 0;
 
 typedef struct {
   const char* name;
-  void(*callback)(void*, uint64_t, uint32_t, void*);
+  void(*callback)(void*, Address, void*);
   Address address;
 } Export;
 
@@ -90,7 +90,7 @@ uint32_t tls[1000] = {0};
 // HACK:
 #include <unicorn/unicorn.h>
 
-static void UnknownImport(void* uc, uint64_t address, uint32_t size, void* user_data);
+static void UnknownImport(void* uc, Address address, void* user_data);
 Address CreateInterface(const char* name, unsigned int slotCount) {
   //FIXME: Unsure about most terminology / inner workings here
   Address interfaceAddress = Allocate(100); //FIXME: Size of object
@@ -102,27 +102,21 @@ Address CreateInterface(const char* name, unsigned int slotCount) {
     sprintf(slotName, "%s__%d", name, i);
     Export* export = LookupExportByName(slotName);
 
-    Address outAddress;
+    Address hltAddress;
     if (export != NULL) {
-
       if (export->address == 0) {
-        outAddress = CreateOut();
-        AddOutHandler(outAddress, export->callback, (void*)slotName);
-        export->address = outAddress;
+        hltAddress = CreateHlt();
+        AddHltHandler(hltAddress, export->callback, (void*)slotName);
+        export->address = hltAddress;
       } else {
-        outAddress = export->address;
+        hltAddress = export->address;
       }
-
-      //CreateBreakpoint(interfaceAddress + i * 4, export->callback, slotName);
     } else {
-
-      outAddress = CreateOut();
-      AddOutHandler(outAddress, UnknownImport, (void*)slotName);
-      AddExport(slotName, UnknownImport, outAddress);
-
-      //CreateBreakpoint(interfaceAddress + i * 4, UnknownImport, slotName);
+      hltAddress = CreateHlt();
+      AddHltHandler(hltAddress, UnknownImport, (void*)slotName);
+      AddExport(slotName, UnknownImport, hltAddress);
     }
-    vtable[i] = outAddress;
+    vtable[i] = hltAddress;
   }
   // First element in object is pointer to vtable
   *(uint32_t*)Memory(interfaceAddress) = vtableAddress;
@@ -664,14 +658,11 @@ HACKY_IMPORT_BEGIN(GetProcAddress)
     eax = 0;
     assert(false);
   } else {
-
     //FIXME: Use existing address for export
-    Address outAddress = CreateOut();
-    AddOutHandler(outAddress, export->callback, (void*)procName);
-    eax = outAddress;
-    printf("Providing at 0x%08X\n", outAddress);
-
-    //CreateBreakpoint(eax, export->callback, (void*)procName);
+    Address hltAddress = CreateHlt();
+    AddHltHandler(hltAddress, export->callback, (void*)procName);
+    eax = hltAddress;
+    printf("Providing at 0x%08X\n", hltAddress);
   }
 
   esp += 2 * 4;
@@ -3369,7 +3360,7 @@ static void UcTGAHook(void* uc, uint64_t address, uint32_t size, void* user_data
 
 
 // Callback for tracing instructions
-static void UnknownImport(void* uc, uint64_t address, uint32_t size, void* user_data) {
+static void UnknownImport(void* uc, Address address, void* user_data) {
   int eip;
   uc_reg_read(uc, UC_X86_REG_EIP, &eip);
   int esp;
@@ -3579,18 +3570,18 @@ Exe* LoadExe(const char* path) {
           }
 
           if (export == NULL) {
-            Address outAddress = CreateOut();
-            AddOutHandler(outAddress, UnknownImport, (void*)label);
-            AddExport(label, UnknownImport, outAddress);
-            *symbolAddress = outAddress;
-            printf("missing at 0x%08X\n", outAddress);
+            Address hltAddress = CreateHlt();
+            AddHltHandler(hltAddress, UnknownImport, (void*)label);
+            AddExport(label, UnknownImport, hltAddress);
+            *symbolAddress = hltAddress;
+            printf("missing at 0x%08X\n", hltAddress);
             //FIXME: Report error and assert false
           } else {
             if (true) { //(export->isVariable == false) {
-              Address outAddress = CreateOut();
-              AddOutHandler(outAddress, export->callback, (void*)label);
-              *symbolAddress = outAddress;
-              printf("found at 0x%08X\n", outAddress);
+              Address hltAddress = CreateHlt();
+              AddHltHandler(hltAddress, export->callback, (void*)label);
+              *symbolAddress = hltAddress;
+              printf("found at 0x%08X\n", hltAddress);
             } else {
               printf("found.. is variable\n");
               assert(false);
