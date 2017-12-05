@@ -9,7 +9,6 @@ find_package(Unicorn REQUIRED)
 find_package(OpenGL REQUIRED)
 find_package(GLEW REQUIRED)
 find_package(SDL2 REQUIRED)
-find_package(DevIL REQUIRED)
 find_package(OpenAL REQUIRED)
 
 include_directories(SYSTEM
@@ -17,7 +16,6 @@ include_directories(SYSTEM
   ${OPENGL_INCLUDE_DIR}
   ${GLEW_INCLUDE_DIRS}
   ${SDL2_INCLUDE_DIR}
-  ${IL_INCLUDE_DIR}
   ${OPENAL_INCLUDE_DIR}
 )
 
@@ -48,7 +46,5 @@ target_link_libraries(openswe1r
   ${OPENGL_LIBRARIES}
   ${GLEW_LIBRARIES}
   ${SDL2_LIBRARY}
-  ${IL_LIBRARIES}
-  ${ILU_LIBRARIES}
   ${OPENAL_LIBRARY}
 )
