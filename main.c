@@ -7,7 +7,6 @@
 #include <stdlib.h>
 #include <inttypes.h>
 #include <assert.h>
-#include <malloc.h>
 
 #include "common.h"
 #include "descriptor.h"
@@ -210,7 +209,8 @@ void LoadSection(Exe* exe, unsigned int sectionIndex) {
   PeSection* section = &exe->sections[sectionIndex];
 
   // Map memory for section
-  uint8_t* mem = (uint8_t*)memalign(0x1000, section->virtualSize);
+  uint8_t* mem;
+  assert(posix_memalign((void **)&mem, 0x1000, section->virtualSize) == 0);
 
   // Read data from exe and fill rest of space with zero
   fseek(exe->f, section->rawAddress, SEEK_SET);

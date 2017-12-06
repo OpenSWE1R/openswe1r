@@ -54,6 +54,12 @@ For now, the goal is to support the x86 Windows Version of the game.
 * [GLEW](http://glew.sourceforge.net/)
 * [OpenAL](https://www.openal.org/)
 
+**For macOS:** Use [Homebrew](https://brew.sh/) to install packages.
+
+```
+$ brew install cmake sdl2 unicorn glew devil openal-soft
+```
+
 ### Building
 
 From your desired project folder, run:

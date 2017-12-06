@@ -4,6 +4,9 @@
 #include <stdint.h>
 #include <stdbool.h>
 
+uint64_t GetTimerFrequency();
+uint64_t GetTimerValue();
+
 //FIXME: use these..
 typedef uint32_t Address;
 typedef uint32_t Size;
