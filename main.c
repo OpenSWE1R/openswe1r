@@ -381,6 +381,8 @@ bool fogEnable;
 float fogStart;
 float fogEnd;
 float projectionMatrix[16];
+float clipScale[3];
+float clipOffset[3];
 
 static GLenum SetupRenderer(unsigned int primitiveType, unsigned int vertexFormat) {
   unsigned int texCount = ((vertexFormat & 0xF00) >> 8);
@@ -424,6 +426,9 @@ static GLenum SetupRenderer(unsigned int primitiveType, unsigned int vertexForma
               ((fogColor >> 16) & 0xFF) / 255.0,
               ((fogColor >> 8) & 0xFF) / 255.0,
               (fogColor & 0xFF) / 255.0);
+
+  glUniform3fv(glGetUniformLocation(program, "clipScale"), 1, clipScale);
+  glUniform3fv(glGetUniformLocation(program, "clipOffset"), 1, clipOffset);
 
 #if 1
   // Hack to disable texture if tex0 is used - doesn't work?!
@@ -2891,7 +2896,15 @@ HACKY_COM_BEGIN(IDirect3DViewport3, 17)
   hacky_printf("a 0x%" PRIX32 "\n", stack[2]);
   D3DVIEWPORT2* vp = (D3DVIEWPORT2*)Memory(stack[2]);
   assert(vp->dwSize == sizeof(D3DVIEWPORT2));
-  printf("- w:%" PRIu32 " h:%" PRIu32 ", zrange: %f %f\n", vp->dwWidth, vp->dwHeight, vp->dvMinZ, vp->dvMaxZ);
+
+  clipScale[0] = 2.0f / vp->dvClipWidth;
+  clipScale[1] = 2.0f / vp->dvClipHeight;
+  clipScale[2] = 2.0f / (vp->dvMaxZ - vp->dvMinZ);
+  clipOffset[0] = -vp->dvClipX * clipScale[0] - 1.0f;
+  clipOffset[1] = -vp->dvClipY * clipScale[1] - 1.0f;
+  clipOffset[2] = -vp->dvMinZ * clipScale[2] - 1.0f;
+  glViewport(vp->dwX, vp->dwY, vp->dwWidth, vp->dwHeight);
+
   eax = 0; // FIXME: No idea what this expects to return..
   esp += 2 * 4;
 HACKY_COM_END()
@@ -3670,8 +3683,9 @@ int main(int argc, char* argv[]) {
     GLuint fragmentShader = CreateShader(FragmentShader1Texture, GL_FRAGMENT_SHADER);
     shader1Texture = CreateShaderProgram(vertexShader, fragmentShader);
   }
-  LinkShaderProgram(shader1Texture);
+  bool linked = LinkShaderProgram(shader1Texture);
   PrintShaderProgramLog(shader1Texture);
+  assert(linked);
   glUseProgram(shader1Texture); //FIXME: Hack..
   printf("-- Loading exe\n");
   Exe* exe = LoadExe(exeName);
