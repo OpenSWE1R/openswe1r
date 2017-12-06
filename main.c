@@ -23,8 +23,6 @@ static SDL_Window* sdlWindow;
 
 #include <GL/glew.h>
 
-#include <IL/il.h>
-
 #include "com/d3d.h"
 #include "com/ddraw.h"
 #include "com/dinput.h"
@@ -1112,46 +1110,6 @@ HACKY_IMPORT_BEGIN(QueryPerformanceFrequency)
   *(uint64_t*)Memory(stack[1]) = GetTimerFrequency();
   eax = 1; // BOOL - but doc: hardware supports a high-resolution performance counter = nonzero return
   esp += 1 * 4;
-HACKY_IMPORT_END()
-
-HACKY_IMPORT_BEGIN(LoadImageA)
-  hacky_printf("hinst 0x%" PRIX32 "\n", stack[1]);
-  hacky_printf("lpszName 0x%" PRIX32 " ('%s')\n", stack[2], (char*)Memory(stack[2]));
-  hacky_printf("uType 0x%" PRIX32 "\n", stack[3]);
-  hacky_printf("cxDesired 0x%" PRIX32 "\n", stack[4]);
-  hacky_printf("cyDesired 0x%" PRIX32 "\n", stack[5]);
-  hacky_printf("fuLoad 0x%" PRIX32 "\n", stack[6]);
-
-  char* path = TranslatePath((const char*)Memory(stack[2]));
-  ILboolean ret = ilLoadImage(path);
-  free(path);
-  if (ret == IL_TRUE) {
-    ILint width = ilGetInteger(IL_IMAGE_WIDTH);
-    ILint height = ilGetInteger(IL_IMAGE_HEIGHT);
-    printf("Loaded %d x %d texture\n", width, height);
-
-    Address bitmapAddress = Allocate(sizeof(BITMAP));
-    BITMAP* bitmap = (BITMAP*)Memory(bitmapAddress);
-
-    bitmap->bmType = 0; //FIXME
-    bitmap->bmWidth = width;
-    bitmap->bmHeight = height;
-    bitmap->bmWidthBytes = 0; //FIXME
-    bitmap->bmPlanes = 0; //FIXME
-    bitmap->bmBitsPixel = 0; //FIXME
-
-    Size size = width * height * 3;
-    bitmap->bmBits = Allocate(size);
-    memcpy(Memory(bitmap->bmBits), ilGetData(), size);
-
-    //FIXME: IL cleanup
-
-    eax = bitmapAddress;    
-  } else {
-    printf("Loading failed!\n");
-    eax = 0;
-  }
-  esp += 6 * 4;
 HACKY_IMPORT_END()
 
 HACKY_IMPORT_BEGIN(GetObjectA)
@@ -3688,8 +3646,6 @@ int main(int argc, char* argv[]) {
       fprintf(stderr, "Error: %s\n", glewGetErrorString(err));
       return 1;
     }
-
-    ilInit();
 
 
     //FIXME: This is ugly but gets the job done.. for now
