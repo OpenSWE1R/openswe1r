@@ -325,7 +325,7 @@ void InitializeEmulation() {
 
 #ifndef UC_KVM
   // Setup segments
-  SegmentDescriptor* gdtEntries = (SegmentDescriptor*)memalign(ucAlignment, AlignUp(gdtSize, ucAlignment));
+  SegmentDescriptor* gdtEntries = (SegmentDescriptor*)aligned_malloc(ucAlignment, AlignUp(gdtSize, ucAlignment));
   memset(gdtEntries, 0x00, gdtSize);
 
   gdtEntries[14] = CreateDescriptor(0x00000000, 0xFFFFF000, true);  // CS
@@ -375,12 +375,12 @@ void InitializeEmulation() {
 #endif
 
   // Map and set TLS (not exposed via flat memory)
-  uint8_t* tls = memalign(ucAlignment, tlsSize);
+  uint8_t* tls = aligned_malloc(ucAlignment, tlsSize);
   memset(tls, 0xBB, tlsSize);
   err = uc_mem_map_ptr(uc, tlsAddress, tlsSize, UC_PROT_WRITE | UC_PROT_READ, tls);
 
   // Allocate a heap
-  heap = memalign(ucAlignment, heapSize);
+  heap = aligned_malloc(ucAlignment, heapSize);
   memset(heap, 0xAA, heapSize);
   MapMemory(heap, heapAddress, heapSize, true, true, true);
 }
@@ -407,7 +407,7 @@ unsigned int CreateEmulatedThread(uint32_t eip) {
   // Map and set stack
   //FIXME: Use requested size
   if (stack == NULL) {
-    stack = memalign(ucAlignment, stackSize);
+    stack = aligned_malloc(ucAlignment, stackSize);
     MapMemory(stack, stackAddress, stackSize, true, true, false);
   }
   static int threadId = 0;

@@ -210,7 +210,7 @@ void LoadSection(Exe* exe, unsigned int sectionIndex) {
   PeSection* section = &exe->sections[sectionIndex];
 
   // Map memory for section
-  uint8_t* mem = (uint8_t*)memalign(0x1000, section->virtualSize);
+  uint8_t* mem = (uint8_t*)aligned_malloc(0x1000, section->virtualSize);
 
   // Read data from exe and fill rest of space with zero
   fseek(exe->f, section->rawAddress, SEEK_SET);
