@@ -1,3 +1,6 @@
+#ifndef __OPENSWE1R_COMMON_H__
+#define __OPENSWE1R_COMMON_H__
+
 #include <stdbool.h>
 #include <stdint.h>
 
@@ -18,3 +21,5 @@ static uint32_t AlignDown(uint32_t address, uint32_t size) {
 static uint32_t AlignUp(uint32_t address, uint32_t size) {
   return AlignDown(address + size - 1, size);
 }
+
+#endif
