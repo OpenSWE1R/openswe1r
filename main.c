@@ -83,7 +83,6 @@ uint32_t tls[1000] = {0};
 #include "shader.h"
 
 
-#include <unistd.h> // Hack for debug sleep
 #include "windows.h" // Hack while exports are not ready
 // HACK:
 #include <unicorn/unicorn.h>
@@ -798,7 +797,7 @@ HACKY_IMPORT_BEGIN(MessageBoxA)
   hacky_printf("lpText 0x%" PRIX32 " ('%s')\n", stack[2], (char*)Memory(stack[2]));
   hacky_printf("lpCaption 0x%" PRIX32 " ('%s')\n", stack[3], (char*)Memory(stack[3]));
   hacky_printf("uType 0x%" PRIX32 "\n", stack[4]);
-  usleep(5000*1000);
+  SDL_Delay(5000);
   eax = 2; // Cancel was selected
   esp += 4 * 4;
 HACKY_IMPORT_END()
@@ -1502,7 +1501,7 @@ HACKY_IMPORT_BEGIN(FindFirstFileA)
     const char* none[] = { NULL };
     dirlisting = none;
     printf("Unknown pattern: '%s'\n", pattern);
-    usleep(1000*3000);
+    SDL_Delay(3000);
   }
 
   if (*dirlisting) {
