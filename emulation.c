@@ -14,6 +14,8 @@
 #endif
 #include <malloc.h>
 
+#include "SDL.h"
+
 #include "common.h"
 #include "descriptor.h"
 #include "emulation.h"
@@ -167,7 +169,7 @@ static void UcTraceHook(void* uc, uint64_t address, uint32_t size, void* user_da
   uc_reg_read(uc, UC_X86_REG_EAX, &eax);
   uc_reg_read(uc, UC_X86_REG_ESI, &esi);
   static uint32_t id = 0;
-  printf("%7" PRIu32 " TRACE Emulation at 0x%X (ESP: 0x%X); eax = 0x%08" PRIX32 " esi = 0x%08" PRIX32 " (TS: %" PRIu64 ")\n", id++, eip, esp, eax, esi, GetTimerValue());
+  printf("%7" PRIu32 " TRACE Emulation at 0x%X (ESP: 0x%X); eax = 0x%08" PRIX32 " esi = 0x%08" PRIX32 " (TS: %" PRIu64 ")\n", id++, eip, esp, eax, esi, SDL_GetTicks());
 }
 
 void MapMemory(void* memory, uint32_t address, uint32_t size, bool read, bool write, bool execute) {

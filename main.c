@@ -147,19 +147,6 @@ static char* TranslatePath(const char* path) {
   return newPath;
 }
 
-// FIXME: Move to platform code?
-
-uint64_t GetTimerFrequency() {
-  return 1000ULL;
-}
-
-//FIXME: Automaticly use frequency
-uint64_t GetTimerValue() {
-  struct timespec monotime;
-  clock_gettime(CLOCK_MONOTONIC, &monotime);
-  return monotime.tv_sec * 1000ULL + monotime.tv_nsec / 1000000ULL;
-}
-
 void StackTrace(uint32_t base, unsigned int frames, unsigned int arguments) {
   uint32_t stackAddress = base;
   for(unsigned int i = 0; i < frames; i++) {
@@ -234,7 +221,7 @@ void UnloadSection(Exe* exe, unsigned int sectionIndex) {
 
 
 static void UcTimerHook(void* uc, uint64_t address, uint32_t size, void* user_data) {
-  printf("Time is %" PRIu64 "\n", GetTimerValue());
+  printf("Time is %" PRIu64 "\n", SDL_GetTicks());
 }
 
 // This is strictly for debug purposes, it attempts to dump fscanf (internally used by sscanf too)
@@ -687,7 +674,7 @@ HACKY_IMPORT_END()
 
 HACKY_IMPORT_BEGIN(QueryPerformanceCounter)
   hacky_printf("lpPerformanceCount 0x%" PRIX32 "\n", stack[1]);
-  *(uint64_t*)Memory(stack[1]) = GetTimerValue();
+  *(uint64_t*)Memory(stack[1]) = SDL_GetPerformanceCounter();
   eax = 1; // nonzero if succeeds
   esp += 1 * 4;
 HACKY_IMPORT_END()
@@ -749,7 +736,7 @@ HACKY_IMPORT_END()
 
 HACKY_IMPORT_BEGIN(timeGetTime)
   //FIXME: Avoid overflow?
-  eax = GetTimerValue();
+  eax = SDL_GetTicks();
 HACKY_IMPORT_END()
 
 HACKY_IMPORT_BEGIN(GetLastError)
@@ -1112,7 +1099,7 @@ HACKY_IMPORT_END()
 
 HACKY_IMPORT_BEGIN(QueryPerformanceFrequency)
   hacky_printf("lpFrequency 0x%" PRIX32 "\n", stack[1]);
-  *(uint64_t*)Memory(stack[1]) = GetTimerFrequency();
+  *(uint64_t*)Memory(stack[1]) = SDL_GetPerformanceFrequency();
   eax = 1; // BOOL - but doc: hardware supports a high-resolution performance counter = nonzero return
   esp += 1 * 4;
 HACKY_IMPORT_END()
@@ -3626,7 +3613,7 @@ void RunX86(Exe* exe) {
 int main(int argc, char* argv[]) {
   printf("-- Initializing\n");
   InitializeEmulation();
-  if (SDL_Init(SDL_INIT_VIDEO | SDL_INIT_EVENTS) < 0) {
+  if (SDL_Init(SDL_INIT_VIDEO | SDL_INIT_TIMER | SDL_INIT_EVENTS) < 0) {
 		  printf("Failed to initialize SDL2!\n");
   }
   printf("-- Creating window\n");
