@@ -83,7 +83,6 @@ uint32_t tls[1000] = {0};
 #include "shader.h"
 
 
-#include <unistd.h> // Hack for debug sleep
 #include "windows.h" // Hack while exports are not ready
 // HACK:
 #include <unicorn/unicorn.h>
@@ -147,19 +146,6 @@ static char* TranslatePath(const char* path) {
   return newPath;
 }
 
-// FIXME: Move to platform code?
-
-uint64_t GetTimerFrequency() {
-  return 1000ULL;
-}
-
-//FIXME: Automaticly use frequency
-uint64_t GetTimerValue() {
-  struct timespec monotime;
-  clock_gettime(CLOCK_MONOTONIC, &monotime);
-  return monotime.tv_sec * 1000ULL + monotime.tv_nsec / 1000000ULL;
-}
-
 void StackTrace(uint32_t base, unsigned int frames, unsigned int arguments) {
   uint32_t stackAddress = base;
   for(unsigned int i = 0; i < frames; i++) {
@@ -210,7 +196,7 @@ void LoadSection(Exe* exe, unsigned int sectionIndex) {
   PeSection* section = &exe->sections[sectionIndex];
 
   // Map memory for section
-  uint8_t* mem = (uint8_t*)memalign(0x1000, section->virtualSize);
+  uint8_t* mem = (uint8_t*)aligned_malloc(0x1000, section->virtualSize);
 
   // Read data from exe and fill rest of space with zero
   fseek(exe->f, section->rawAddress, SEEK_SET);
@@ -234,7 +220,7 @@ void UnloadSection(Exe* exe, unsigned int sectionIndex) {
 
 
 static void UcTimerHook(void* uc, uint64_t address, uint32_t size, void* user_data) {
-  printf("Time is %" PRIu64 "\n", GetTimerValue());
+  printf("Time is %" PRIu64 "\n", SDL_GetTicks());
 }
 
 // This is strictly for debug purposes, it attempts to dump fscanf (internally used by sscanf too)
@@ -687,7 +673,7 @@ HACKY_IMPORT_END()
 
 HACKY_IMPORT_BEGIN(QueryPerformanceCounter)
   hacky_printf("lpPerformanceCount 0x%" PRIX32 "\n", stack[1]);
-  *(uint64_t*)Memory(stack[1]) = GetTimerValue();
+  *(uint64_t*)Memory(stack[1]) = SDL_GetPerformanceCounter();
   eax = 1; // nonzero if succeeds
   esp += 1 * 4;
 HACKY_IMPORT_END()
@@ -749,7 +735,7 @@ HACKY_IMPORT_END()
 
 HACKY_IMPORT_BEGIN(timeGetTime)
   //FIXME: Avoid overflow?
-  eax = GetTimerValue();
+  eax = SDL_GetTicks();
 HACKY_IMPORT_END()
 
 HACKY_IMPORT_BEGIN(GetLastError)
@@ -811,7 +797,7 @@ HACKY_IMPORT_BEGIN(MessageBoxA)
   hacky_printf("lpText 0x%" PRIX32 " ('%s')\n", stack[2], (char*)Memory(stack[2]));
   hacky_printf("lpCaption 0x%" PRIX32 " ('%s')\n", stack[3], (char*)Memory(stack[3]));
   hacky_printf("uType 0x%" PRIX32 "\n", stack[4]);
-  usleep(5000*1000);
+  SDL_Delay(5000);
   eax = 2; // Cancel was selected
   esp += 4 * 4;
 HACKY_IMPORT_END()
@@ -1112,7 +1098,7 @@ HACKY_IMPORT_END()
 
 HACKY_IMPORT_BEGIN(QueryPerformanceFrequency)
   hacky_printf("lpFrequency 0x%" PRIX32 "\n", stack[1]);
-  *(uint64_t*)Memory(stack[1]) = GetTimerFrequency();
+  *(uint64_t*)Memory(stack[1]) = SDL_GetPerformanceFrequency();
   eax = 1; // BOOL - but doc: hardware supports a high-resolution performance counter = nonzero return
   esp += 1 * 4;
 HACKY_IMPORT_END()
@@ -1515,7 +1501,7 @@ HACKY_IMPORT_BEGIN(FindFirstFileA)
     const char* none[] = { NULL };
     dirlisting = none;
     printf("Unknown pattern: '%s'\n", pattern);
-    usleep(1000*3000);
+    SDL_Delay(3000);
   }
 
   if (*dirlisting) {
@@ -3626,7 +3612,7 @@ void RunX86(Exe* exe) {
 int main(int argc, char* argv[]) {
   printf("-- Initializing\n");
   InitializeEmulation();
-  if (SDL_Init(SDL_INIT_VIDEO | SDL_INIT_EVENTS) < 0) {
+  if (SDL_Init(SDL_INIT_VIDEO | SDL_INIT_TIMER | SDL_INIT_EVENTS) < 0) {
 		  printf("Failed to initialize SDL2!\n");
   }
   printf("-- Creating window\n");
