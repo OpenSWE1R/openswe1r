@@ -7,7 +7,6 @@
 #include <stdlib.h>
 #include <inttypes.h>
 #include <assert.h>
-#include <malloc.h>
 
 #include "common.h"
 #include "descriptor.h"
