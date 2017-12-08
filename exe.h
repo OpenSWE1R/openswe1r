@@ -80,14 +80,14 @@ typedef struct {
 	uint32_t forwarderChain;
 	uint32_t name;
 	uint32_t firstThunk;
-} IMAGE_IMPORT_DESCRIPTOR;
+} API(IMAGE_IMPORT_DESCRIPTOR);
 
 typedef struct  {
 	uint16_t hint;
 	char name[];
-} IMAGE_IMPORT_BY_NAME;
+} API(IMAGE_IMPORT_BY_NAME);
 
 typedef struct {
   uint32_t virtualAddress;
   uint32_t sizeOfBlock;
-} IMAGE_BASE_RELOCATION;
+} API(IMAGE_BASE_RELOCATION);

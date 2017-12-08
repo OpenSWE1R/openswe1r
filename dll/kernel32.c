@@ -4,7 +4,7 @@
 #include "../emulation.h"
 
 // 0x8704A0
-EXPORT_STDCALL(kernel32, DWORD, GetVersion) { // WINAPI
+EXPORT_STDCALL(kernel32, API(DWORD), GetVersion) { // WINAPI
 // Windows 98 (https://support.microsoft.com/en-us/kb/189249)
   uint16_t platformId = 1;
   uint8_t majorVersion = 4;
@@ -13,13 +13,13 @@ EXPORT_STDCALL(kernel32, DWORD, GetVersion) { // WINAPI
 }
 
 // 0x8704F8
-EXPORT_STDCALL(kernel32, LPTSTR, GetCommandLineA) { //WINAPI
+EXPORT_STDCALL(kernel32, API(LPTSTR), GetCommandLineA) { //WINAPI
   //return "program"; //FIXME!
   return 0;
 }
 
 // 0x8704F4
-EXPORT_STDCALL(kernel32, VOID, GetStartupInfo, LPSTARTUPINFO,lpStartupInfo) { //WINAPI
+EXPORT_STDCALL(kernel32, API(VOID), GetStartupInfo, API(LPSTARTUPINFO),lpStartupInfo) { //WINAPI
   //lpStartupInfo->
 }
 

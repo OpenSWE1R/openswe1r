@@ -4,6 +4,8 @@
 #include <stdint.h>
 #include <stdbool.h>
 
+#define API(x) API__ ## x
+
 //FIXME: use these..
 typedef uint32_t Address;
 typedef uint32_t Size;

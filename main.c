@@ -930,14 +930,14 @@ HACKY_IMPORT_BEGIN(CoCreateInstance)
   hacky_printf("dwClsContext 0x%" PRIX32 "\n", stack[3]);
   hacky_printf("riid 0x%" PRIX32 "\n", stack[4]);
   hacky_printf("ppv 0x%" PRIX32 "\n", stack[5]);
-  const CLSID* clsid = (const CLSID*)Memory(stack[1]);
+  const API(CLSID)* clsid = (const API(CLSID)*)Memory(stack[1]);
   char clsidString[1024];
   sprintf(clsidString, "%08" PRIX32 "-%04" PRIX16 "-%04" PRIX16 "-%02" PRIX8 "%02" PRIX8 "-%02" PRIX8 "%02" PRIX8 "%02" PRIX8 "%02" PRIX8 "%02" PRIX8 "%02" PRIX8,
           clsid->Data1, clsid->Data2, clsid->Data3,
           clsid->Data4[0], clsid->Data4[1], clsid->Data4[2], clsid->Data4[3],
           clsid->Data4[4], clsid->Data4[5], clsid->Data4[6], clsid->Data4[7]);
   printf("  (read clsid: {%s})\n", clsidString);
-  const IID* iid = (const IID*)Memory(stack[4]);
+  const API(IID)* iid = (const API(IID)*)Memory(stack[4]);
   char iidString[1024];
   sprintf(iidString, "%08" PRIX32 "-%04" PRIX16 "-%04" PRIX16 "-%02" PRIX8 "%02" PRIX8 "-%02" PRIX8 "%02" PRIX8 "%02" PRIX8 "%02" PRIX8 "%02" PRIX8 "%02" PRIX8,
           iid->Data1, iid->Data2, iid->Data3,
@@ -1149,7 +1149,7 @@ HACKY_IMPORT_BEGIN(StretchBlt)
 
   // Get the pointer to the object the DC points at, we'll assume that it is a BITMAP
   Address objectAddress = *(Address*)Memory(stack[6]);
-  BITMAP* bitmap = Memory(objectAddress);
+  API(BITMAP)* bitmap = Memory(objectAddress);
   void* data = Memory(bitmap->bmBits);
 
   // Update the texture interface
@@ -1505,7 +1505,7 @@ HACKY_IMPORT_BEGIN(FindFirstFileA)
   }
 
   if (*dirlisting) {
-    WIN32_FIND_DATA* data = Memory(stack[2]);
+    API(WIN32_FIND_DATA)* data = Memory(stack[2]);
     data->dwFileAttributes = strchr(*dirlisting,'.') ? 0x80 : 0x10; // FILE_ATTRIBUTE_NORMAL or FILE_ATTRIBUTE_DIRECTORY
     sprintf(data->cFileName, "%s", *dirlisting);
     dirlisting++;
@@ -1522,7 +1522,7 @@ HACKY_IMPORT_BEGIN(FindNextFileA)
   hacky_printf("lpFindFileData 0x%" PRIX32 "\n", stack[2]);
 
   if (*dirlisting) {
-    WIN32_FIND_DATA* data = Memory(stack[2]);
+    API(WIN32_FIND_DATA)* data = Memory(stack[2]);
     data->dwFileAttributes = strchr(*dirlisting,'.') ? 0x80 : 0x10; // FILE_ATTRIBUTE_NORMAL or FILE_ATTRIBUTE_DIRECTORY
     sprintf(data->cFileName, "%s", *dirlisting);
     dirlisting++;
@@ -1546,12 +1546,12 @@ HACKY_IMPORT_END()
 // Name entry screen
 
 HACKY_IMPORT_BEGIN(GetKeyState)
-  SHORT pressed = 0x8000; // high order bit = pressed
-  SHORT toggled = 0x0001; // low order bit = toggled
-  SHORT returnValue = 0; // default: unpressed
+  API(SHORT) pressed = 0x8000; // high order bit = pressed
+  API(SHORT) toggled = 0x0001; // low order bit = toggled
+  API(SHORT) returnValue = 0; // default: unpressed
   int nVirtKey = stack[1];
   switch(nVirtKey) {
-    case 0x14: // VK_CAPITAL
+    case API(VK_CAPITAL):
       returnValue = 0;
       break;
     default:
@@ -1562,21 +1562,21 @@ HACKY_IMPORT_BEGIN(GetKeyState)
 HACKY_IMPORT_END()
 
 HACKY_IMPORT_BEGIN(MapVirtualKeyA)
-  UINT uCode = stack[1];
-  UINT uMapType = stack[2];
+  API(UINT) uCode = stack[1];
+  API(UINT) uMapType = stack[2];
 
   hacky_printf("uCode 0x%" PRIX32 "\n", uCode);
   hacky_printf("uMapType 0x%" PRIX32 "\n", uMapType);
 
-  UINT returnValue = 0; // 0 = no map
+  API(UINT) returnValue = 0; // 0 = no map
   switch(uMapType) {
     case 1: // MAPVK_VSC_TO_VK: uCode is a scan code and is translated into a virtual-key code that does not distinguish between left- and right-hand keys. If there is no translation, the function returns 0.
-      if (uCode == VK_LSHIFT || uCode == VK_RSHIFT) {
-        returnValue = VK_SHIFT;
-      } else if (uCode == VK_LCONTROL || uCode == VK_RCONTROL) {
-        returnValue = VK_CONTROL;
-      } else if (uCode == VK_LMENU || uCode == VK_RMENU) {
-        returnValue = VK_MENU;
+      if (uCode == API(VK_LSHIFT) || uCode == API(VK_RSHIFT)) {
+        returnValue = API(VK_SHIFT);
+      } else if (uCode == API(VK_LCONTROL) || uCode == API(VK_RCONTROL)) {
+        returnValue = API(VK_CONTROL);
+      } else if (uCode == API(VK_LMENU) || uCode == API(VK_RMENU)) {
+        returnValue = API(VK_MENU);
       } else {
         returnValue = uCode; // FIXME: is this okay?
       }
@@ -1737,7 +1737,7 @@ HACKY_COM_BEGIN(IDirectDraw4, 0)
   hacky_printf("p 0x%" PRIX32 "\n", stack[1]);
   hacky_printf("riid 0x%" PRIX32 "\n", stack[2]);
   hacky_printf("ppvObj 0x%" PRIX32 "\n", stack[3]);
-  const IID* iid = (const IID*)Memory(stack[2]);
+  const API(IID)* iid = (const API(IID)*)Memory(stack[2]);
 
   char iidString[1024];
   sprintf(iidString, "%08" PRIX32 "-%04" PRIX16 "-%04" PRIX16 "-%02" PRIX8 "%02" PRIX8 "-%02" PRIX8 "%02" PRIX8 "%02" PRIX8 "%02" PRIX8 "%02" PRIX8 "%02" PRIX8,
@@ -1788,11 +1788,11 @@ HACKY_COM_BEGIN(IDirectDraw4, 6)
   hacky_printf("c 0x%" PRIX32 "\n", stack[4]);
 
   Address surfaceAddress = CreateInterface("IDirectDrawSurface4", 50);
-  DirectDrawSurface4* surface = (DirectDrawSurface4*)Memory(surfaceAddress);
+  API(DirectDrawSurface4)* surface = (API(DirectDrawSurface4)*)Memory(surfaceAddress);
 
   *(Address*)Memory(stack[3]) = surfaceAddress;
 
-  DDSURFACEDESC2* desc = (DDSURFACEDESC2*)Memory(stack[2]);
+  API(DDSURFACEDESC2)* desc = (API(DDSURFACEDESC2)*)Memory(stack[2]);
 
   printf("dwSize = %" PRIu32 "\n", desc->dwSize);
   printf("dwFlags = 0x%08" PRIX32 "\n", desc->dwFlags);
@@ -1810,17 +1810,19 @@ HACKY_COM_BEGIN(IDirectDraw4, 6)
   printf("ddpfPixelFormat.dwRGBAlphaBitMask = 0x%08" PRIX32 "\n", desc->ddpfPixelFormat.dwRGBAlphaBitMask);
 
 
-  memcpy(&surface->desc, desc, sizeof(DDSURFACEDESC2));
+  memcpy(&surface->desc, desc, sizeof(API(DDSURFACEDESC2)));
 
-  #define DDSD_PITCH 0x00000008l
+enum {
+  API(DDSD_PITCH) = 0x00000008l
+};
 
-  surface->desc.dwFlags = DDSD_PITCH;
+  surface->desc.dwFlags = API(DDSD_PITCH);
   surface->desc.lPitch = surface->desc.dwWidth * desc->ddpfPixelFormat.dwRGBBitCount / 8;
 
-  if (desc->ddsCaps.dwCaps & DDSCAPS_TEXTURE) {
+  if (desc->ddsCaps.dwCaps & API(DDSCAPS_TEXTURE)) {
     // FIXME: Delay this until the interface is queried the first time?!
     surface->texture = CreateInterface("IDirect3DTexture2", 20);
-    Direct3DTexture2* texture = (Direct3DTexture2*)Memory(surface->texture);
+    API(Direct3DTexture2)* texture = (API(Direct3DTexture2)*)Memory(surface->texture);
     texture->surface = surfaceAddress;
     glGenTextures(1, &texture->handle);
     printf("GL handle is %d\n", texture->handle);
@@ -1829,7 +1831,7 @@ HACKY_COM_BEGIN(IDirectDraw4, 6)
     surface->texture = CreateInterface("invalid", 200);
 
     //FIXME: WTF is this shit?!
-    Direct3DTexture2* texture = (Direct3DTexture2*)Memory(surface->texture);
+    API(Direct3DTexture2)* texture = (API(Direct3DTexture2)*)Memory(surface->texture);
     glGenTextures(1, &texture->handle);
     //assert(false);
   }
@@ -1864,14 +1866,14 @@ HACKY_COM_BEGIN(IDirectDraw4, 8)
     *(uint32_t*)Memory(esp) = c; // user pointer
 
     esp -= 4;
-    Address descAddress = Allocate(sizeof(DDSURFACEDESC2));
-    DDSURFACEDESC2* desc = Memory(descAddress);
-    desc->ddpfPixelFormat.dwFlags = DDPF_RGB;
+    Address descAddress = Allocate(sizeof(API(DDSURFACEDESC2)));
+    API(DDSURFACEDESC2)* desc = Memory(descAddress);
+    desc->ddpfPixelFormat.dwFlags = API(DDPF_RGB);
     desc->ddpfPixelFormat.dwRGBBitCount = 24;
     desc->dwWidth = 640;
     desc->dwHeight = 480;
     desc->lpSurface = 0x01010101;
-    *(uint32_t*)Memory(esp) = descAddress; // DDSURFACEDESC2*
+    *(uint32_t*)Memory(esp) = descAddress; // API(DDSURFACEDESC2)*
 
     // Emulate the call
     esp -= 4;
@@ -1907,10 +1909,10 @@ HACKY_COM_BEGIN(IDirectDraw4, 11)
 // (+60)
 
 #if 1
-  DDCAPS* halCaps = Memory(stack[2]);
-  DDCAPS* swCaps = Memory(stack[3]);
+  API(DDCAPS)* halCaps = Memory(stack[2]);
+  API(DDCAPS)* swCaps = Memory(stack[3]);
 
-  printf("halCaps is %d bytes (known: %d bytes)\n", halCaps->dwSize, sizeof(DDCAPS));
+  printf("halCaps is %d bytes (known: %d bytes)\n", halCaps->dwSize, sizeof(API(DDCAPS)));
 
   halCaps->dwCaps = 0x00000001;
   halCaps->dwCaps2 = 0x00080000;
@@ -1992,8 +1994,8 @@ HACKY_COM_BEGIN(IDirectDrawSurface4, 0)
   hacky_printf("p 0x%" PRIX32 "\n", stack[1]);
   hacky_printf("a 0x%" PRIX32 "\n", stack[2]);
   hacky_printf("b 0x%" PRIX32 "\n", stack[3]);
-  DirectDrawSurface4* this = (DirectDrawSurface4*)Memory(stack[1]);
-  const IID* iid = (const IID*)Memory(stack[2]);
+  API(DirectDrawSurface4)* this = (API(DirectDrawSurface4)*)Memory(stack[1]);
+  const API(IID)* iid = (const API(IID)*)Memory(stack[2]);
   printf("  (read iid: {%08" PRIX32 "-%04" PRIX16 "-%04" PRIX16 "-%02" PRIX8 "%02" PRIX8 "-%02" PRIX8 "%02" PRIX8 "%02" PRIX8 "%02" PRIX8 "%02" PRIX8 "%02" PRIX8 "})\n",
          iid->Data1, iid->Data2, iid->Data3,
          iid->Data4[0], iid->Data4[1], iid->Data4[2], iid->Data4[3],
@@ -2076,18 +2078,18 @@ HACKY_COM_BEGIN(IDirectDrawSurface4, 12)
   hacky_printf("p 0x%" PRIX32 "\n", stack[1]);
   hacky_printf("a 0x%" PRIX32 "\n", stack[2]);
   hacky_printf("b 0x%" PRIX32 "\n", stack[3]);
-  DDSCAPS2* caps = (DDSCAPS2*)Memory(stack[2]);
+  API(DDSCAPS2)* caps = (API(DDSCAPS2)*)Memory(stack[2]);
 
   printf("dwCaps = 0x%08" PRIX32 "\n", caps->dwCaps);
 
-  if (caps->dwCaps & DDSCAPS_MIPMAP) {
+  if (caps->dwCaps & API(DDSCAPS_MIPMAP)) {
     //FIXME: This is probably BAD!
     printf("Redirecting to itself\n");
     *(Address*)Memory(stack[3]) = stack[1];
   } else {
     printf("Creating new dummy surface\n");
     Address surfaceAddress = CreateInterface("IDirectDrawSurface4", 50);
-    DirectDrawSurface4* surface = (DirectDrawSurface4*)Memory(surfaceAddress);
+    API(DirectDrawSurface4)* surface = (API(DirectDrawSurface4)*)Memory(surfaceAddress);
     surface->texture = 0;
     *(Address*)Memory(stack[3]) = surfaceAddress;
   }
@@ -2101,9 +2103,9 @@ HACKY_COM_BEGIN(IDirectDrawSurface4, 17)
   hacky_printf("p 0x%" PRIX32 "\n", stack[1]);
   hacky_printf("a 0x%" PRIX32 "\n", stack[2]);
 
-  DirectDrawSurface4* this = (DirectDrawSurface4*)Memory(stack[1]);
+  API(DirectDrawSurface4)* this = (API(DirectDrawSurface4)*)Memory(stack[1]);
   if (this->texture != 0) {
-    Direct3DTexture2* texture = (Direct3DTexture2*)Memory(this->texture);
+    API(Direct3DTexture2)* texture = (API(Direct3DTexture2)*)Memory(this->texture);
     printf("Returning GL tex handle %d\n", texture->handle);
     *(Address*)Memory(stack[2]) = texture->handle;
   } else {
@@ -2120,7 +2122,7 @@ HACKY_COM_BEGIN(IDirectDrawSurface4, 22)
   hacky_printf("p 0x%" PRIX32 "\n", stack[1]);
   hacky_printf("a 0x%" PRIX32 "\n", stack[2]);
 
-  DDSURFACEDESC2* desc = (DDSURFACEDESC2*)Memory(stack[2]);
+  API(DDSURFACEDESC2)* desc = (API(DDSURFACEDESC2)*)Memory(stack[2]);
   //FIXME?!  
 
   eax = 0; // FIXME: No idea what this expects to return..
@@ -2135,7 +2137,7 @@ HACKY_COM_BEGIN(IDirectDrawSurface4, 25)
   hacky_printf("c 0x%" PRIX32 "\n", stack[4]);
   hacky_printf("d 0x%" PRIX32 "\n", stack[5]);
 
-  DirectDrawSurface4* this = (DirectDrawSurface4*)Memory(stack[1]);
+  API(DirectDrawSurface4)* this = (API(DirectDrawSurface4)*)Memory(stack[1]);
 
   assert(stack[2] == 0);
   assert(stack[5] == 0);
@@ -2146,8 +2148,8 @@ HACKY_COM_BEGIN(IDirectDrawSurface4, 25)
     memset(Memory(this->desc.lpSurface), 0x77, this->desc.dwHeight * this->desc.lPitch);
   }
 
-  DDSURFACEDESC2* desc = Memory(stack[3]);
-  memcpy(desc, &this->desc, sizeof(DDSURFACEDESC2));
+  API(DDSURFACEDESC2)* desc = Memory(stack[3]);
+  memcpy(desc, &this->desc, sizeof(API(DDSURFACEDESC2)));
   
   printf("%d x %d (pitch: %d); bpp = %d; at 0x%08X\n", desc->dwWidth, desc->dwHeight, desc->lPitch, desc->ddpfPixelFormat.dwRGBBitCount, desc->lpSurface);
 #if 0
@@ -2177,11 +2179,11 @@ HACKY_COM_BEGIN(IDirectDrawSurface4, 32)
 
   assert(stack[2] == 0);
 
-  DirectDrawSurface4* this = (DirectDrawSurface4*)Memory(stack[1]);
+  API(DirectDrawSurface4)* this = (API(DirectDrawSurface4)*)Memory(stack[1]);
 
-  DDSURFACEDESC2* desc = &this->desc;
+  API(DDSURFACEDESC2)* desc = &this->desc;
 
-  Direct3DTexture2* texture = (Direct3DTexture2*)Memory(this->texture);
+  API(Direct3DTexture2)* texture = (API(Direct3DTexture2)*)Memory(this->texture);
 
   GLint previousTexture = 0;
   glGetIntegerv(GL_TEXTURE_BINDING_2D, &previousTexture);
@@ -2257,32 +2259,38 @@ HACKY_COM_BEGIN(IDirect3D3, 3)
     esp -= 4;
     *(uint32_t*)Memory(esp) = b; // lpContext
 
-    Address desc_addr = Allocate(sizeof(D3DDEVICEDESC));
-    D3DDEVICEDESC* desc = (D3DDEVICEDESC*)Memory(desc_addr);
-    memset(desc, 0x00, sizeof(D3DDEVICEDESC));
-    desc->dwSize = sizeof(D3DDEVICEDESC);
+    Address desc_addr = Allocate(sizeof(API(D3DDEVICEDESC)));
+    API(D3DDEVICEDESC)* desc = (API(D3DDEVICEDESC)*)Memory(desc_addr);
+    memset(desc, 0x00, sizeof(API(D3DDEVICEDESC)));
+    desc->dwSize = sizeof(API(D3DDEVICEDESC));
     desc->dwFlags = 0xFFFFFFFF;
 
     desc->dwDeviceZBufferBitDepth = 24;
 
-    #define D3DPTEXTURECAPS_PERSPECTIVE     0x00000001L
-    #define D3DPTEXTURECAPS_ALPHA           0x00000004L
-    #define D3DPTEXTURECAPS_TRANSPARENCY    0x00000008L
+enum {
+  API(D3DPTEXTURECAPS_PERSPECTIVE) =   0x00000001L,
+  API(D3DPTEXTURECAPS_ALPHA) =         0x00000004L,
+  API(D3DPTEXTURECAPS_TRANSPARENCY) =  0x00000008L
+};
 
     desc->dpcTriCaps.dwTextureCaps = 0;
-    desc->dpcTriCaps.dwTextureCaps |= D3DPTEXTURECAPS_PERSPECTIVE;
-    desc->dpcTriCaps.dwTextureCaps |= D3DPTEXTURECAPS_ALPHA;
-    desc->dpcTriCaps.dwTextureCaps |= D3DPTEXTURECAPS_TRANSPARENCY;
+    desc->dpcTriCaps.dwTextureCaps |= API(D3DPTEXTURECAPS_PERSPECTIVE);
+    desc->dpcTriCaps.dwTextureCaps |= API(D3DPTEXTURECAPS_ALPHA);
+    desc->dpcTriCaps.dwTextureCaps |= API(D3DPTEXTURECAPS_TRANSPARENCY);
 
-    #define D3DPSHADECAPS_ALPHAGOURAUDBLEND 0x00004000L
+enum {
+  API(D3DPSHADECAPS_ALPHAGOURAUDBLEND) = 0x00004000L
+};
 
     desc->dpcTriCaps.dwShadeCaps = 0;
-    desc->dpcTriCaps.dwShadeCaps |= D3DPSHADECAPS_ALPHAGOURAUDBLEND;
+    desc->dpcTriCaps.dwShadeCaps |= API(D3DPSHADECAPS_ALPHAGOURAUDBLEND);
 
-    #define D3DPTBLENDCAPS_MODULATEALPHA 0x00000008L
+enum {
+  API(D3DPTBLENDCAPS_MODULATEALPHA) = 0x00000008L
+};
 
     desc->dpcTriCaps.dwTextureBlendCaps = 0;    
-    desc->dpcTriCaps.dwTextureBlendCaps |= D3DPTBLENDCAPS_MODULATEALPHA;
+    desc->dpcTriCaps.dwTextureBlendCaps |= API(D3DPTBLENDCAPS_MODULATEALPHA);
 
     desc->dwMaxVertexCount = 0xFFFF;
 
@@ -2310,9 +2318,9 @@ HACKY_COM_BEGIN(IDirect3D3, 3)
 
     // Used as parameter in Direct Draw `Initialize`
     esp -= 4;
-    Address guid_addr = Allocate(sizeof(IID));
-    IID* guid = (IID*)Memory(guid_addr);
-IID* iid = guid;
+    Address guid_addr = Allocate(sizeof(API(IID)));
+    API(IID)* guid = (API(IID)*)Memory(guid_addr);
+API(IID)* iid = guid;
 
 // IDirect3DHALDevice
 iid->Data1 = 0x84E63DE0;
@@ -2383,16 +2391,16 @@ HACKY_COM_BEGIN(IDirect3D3, 10)
   *(uint32_t*)Memory(esp) = returnAddress;
 
   {
-    Address formatAddress = Allocate(sizeof(DDPIXELFORMAT));
-    DDPIXELFORMAT* format = (DDPIXELFORMAT*)Memory(formatAddress);
-    format->dwSize = sizeof(DDPIXELFORMAT);
+    Address formatAddress = Allocate(sizeof(API(DDPIXELFORMAT)));
+    API(DDPIXELFORMAT)* format = (API(DDPIXELFORMAT)*)Memory(formatAddress);
+    format->dwSize = sizeof(API(DDPIXELFORMAT));
     format->dwFlags = 0x400; // DDPF_ZBUFFER;
     format->dwZBufferBitDepth = 16;
 
     esp -= 4;
     *(uint32_t*)Memory(esp) = c; // user pointer
     esp -= 4;
-    *(uint32_t*)Memory(esp) = formatAddress; // DDPIXELFORMAT*
+    *(uint32_t*)Memory(esp) = formatAddress; // API(DDPIXELFORMAT)*
 
     // Emulate the call
     esp -= 4;
@@ -2422,8 +2430,8 @@ HACKY_COM_BEGIN(IDirect3DDevice3, 0)
   hacky_printf("p 0x%" PRIX32 "\n", stack[1]);
   hacky_printf("a 0x%" PRIX32 "\n", stack[2]);
   hacky_printf("b 0x%" PRIX32 "\n", stack[3]);
-  DirectDrawSurface4* this = (DirectDrawSurface4*)Memory(stack[1]);
-  const IID* iid = (const IID*)Memory(stack[2]);
+  API(DirectDrawSurface4)* this = (API(DirectDrawSurface4)*)Memory(stack[1]);
+  const API(IID)* iid = (const API(IID)*)Memory(stack[2]);
   printf("  (read iid: {%08" PRIX32 "-%04" PRIX16 "-%04" PRIX16 "-%02" PRIX8 "%02" PRIX8 "-%02" PRIX8 "%02" PRIX8 "%02" PRIX8 "%02" PRIX8 "%02" PRIX8 "%02" PRIX8 "})\n",
      iid->Data1, iid->Data2, iid->Data3,
      iid->Data4[0], iid->Data4[1], iid->Data4[2], iid->Data4[3],
@@ -2484,11 +2492,11 @@ HACKY_COM_BEGIN(IDirect3DDevice3, 8)
 
   {
     {
-      Address formatAddress = Allocate(sizeof(DDPIXELFORMAT));
-      DDPIXELFORMAT* format = (DDPIXELFORMAT*)Memory(formatAddress);
-      memset(format, 0x00, sizeof(DDPIXELFORMAT));
-      format->dwSize = sizeof(DDPIXELFORMAT);
-      format->dwFlags = DDPF_RGB | DDPF_ALPHAPIXELS;
+      Address formatAddress = Allocate(sizeof(API(DDPIXELFORMAT)));
+      API(DDPIXELFORMAT)* format = (API(DDPIXELFORMAT)*)Memory(formatAddress);
+      memset(format, 0x00, sizeof(API(DDPIXELFORMAT)));
+      format->dwSize = sizeof(API(DDPIXELFORMAT));
+      format->dwFlags = API(DDPF_RGB) | API(DDPF_ALPHAPIXELS);
       format->dwRGBBitCount = 16;
       format->dwRBitMask = 0x0F00;
       format->dwGBitMask = 0x00F0;
@@ -2498,18 +2506,18 @@ HACKY_COM_BEGIN(IDirect3DDevice3, 8)
       esp -= 4;
       *(uint32_t*)Memory(esp) = b; // user pointer
       esp -= 4;
-      *(uint32_t*)Memory(esp) = formatAddress; // DDPIXELFORMAT*
+      *(uint32_t*)Memory(esp) = formatAddress; // API(DDPIXELFORMAT)*
 
       // Emulate a call by setting return address to where we want to go.
       esp -= 4;
       *(uint32_t*)Memory(esp) = clearEax; // Return to clear eax
     }
     {
-      Address formatAddress = Allocate(sizeof(DDPIXELFORMAT));
-      DDPIXELFORMAT* format = (DDPIXELFORMAT*)Memory(formatAddress);
-      memset(format, 0x00, sizeof(DDPIXELFORMAT));
-      format->dwSize = sizeof(DDPIXELFORMAT);
-      format->dwFlags = DDPF_RGB | DDPF_ALPHAPIXELS;
+      Address formatAddress = Allocate(sizeof(API(DDPIXELFORMAT)));
+      API(DDPIXELFORMAT)* format = (API(DDPIXELFORMAT)*)Memory(formatAddress);
+      memset(format, 0x00, sizeof(API(DDPIXELFORMAT)));
+      format->dwSize = sizeof(API(DDPIXELFORMAT));
+      format->dwFlags = API(DDPF_RGB) | API(DDPF_ALPHAPIXELS);
       format->dwRGBBitCount = 16;
       format->dwRBitMask = 0x7C00;
       format->dwGBitMask = 0x03E0;
@@ -2519,7 +2527,7 @@ HACKY_COM_BEGIN(IDirect3DDevice3, 8)
       esp -= 4;
       *(uint32_t*)Memory(esp) = b; // user pointer
       esp -= 4;
-      *(uint32_t*)Memory(esp) = formatAddress; // DDPIXELFORMAT*
+      *(uint32_t*)Memory(esp) = formatAddress; // API(DDPIXELFORMAT)*
 
       // Emulate a call by setting return address to the callback.
       esp -= 4;
@@ -2527,11 +2535,11 @@ HACKY_COM_BEGIN(IDirect3DDevice3, 8)
     }
 #if 1
     {
-      Address formatAddress = Allocate(sizeof(DDPIXELFORMAT));
-      DDPIXELFORMAT* format = (DDPIXELFORMAT*)Memory(formatAddress);
-      memset(format, 0x00, sizeof(DDPIXELFORMAT));
-      format->dwSize = sizeof(DDPIXELFORMAT);
-      format->dwFlags = DDPF_RGB | DDPF_ALPHAPIXELS;
+      Address formatAddress = Allocate(sizeof(API(DDPIXELFORMAT)));
+      API(DDPIXELFORMAT)* format = (API(DDPIXELFORMAT)*)Memory(formatAddress);
+      memset(format, 0x00, sizeof(API(DDPIXELFORMAT)));
+      format->dwSize = sizeof(API(DDPIXELFORMAT));
+      format->dwFlags = API(DDPF_RGB) | API(DDPF_ALPHAPIXELS);
       format->dwRGBBitCount = 32;
       format->dwRBitMask = 0x00FF0000;
       format->dwGBitMask = 0x0000FF00;
@@ -2541,7 +2549,7 @@ HACKY_COM_BEGIN(IDirect3DDevice3, 8)
       esp -= 4;
       *(uint32_t*)Memory(esp) = b; // user pointer
       esp -= 4;
-      *(uint32_t*)Memory(esp) = formatAddress; // DDPIXELFORMAT*
+      *(uint32_t*)Memory(esp) = formatAddress; // API(DDPIXELFORMAT)*
 
       // Emulate the call. We are calling the callback.
       // We also set the return address to the callback.
@@ -2587,11 +2595,11 @@ static void glSet(GLenum state, bool set) {
   }
 }
 
-GLenum mapBlend(D3DBLEND blend) {
+GLenum mapBlend(API(D3DBLEND) blend) {
   switch(blend) {
-  case D3DBLEND_SRCALPHA:
+  case API(D3DBLEND_SRCALPHA):
     return GL_SRC_ALPHA;
-  case D3DBLEND_INVSRCALPHA:
+  case API(D3DBLEND_INVSRCALPHA):
     return GL_ONE_MINUS_SRC_ALPHA;
   default:
     assert(false);
@@ -2610,78 +2618,78 @@ HACKY_COM_BEGIN(IDirect3DDevice3, 22)
   uint32_t a = stack[2];
   uint32_t b = stack[3];
   switch(a) {
-    case D3DRS_ZENABLE:
+    case API(D3DRENDERSTATE_ZENABLE):
       //FIXME
       glSet(GL_DEPTH_TEST, b);
       // Hack: While Z is not correct, we can't turn on z-test
       glDisable(GL_DEPTH_TEST);
       break;
 
-    case D3DRS_FILLMODE:
+    case API(D3DRENDERSTATE_FILLMODE):
       assert(b == 3);
       //FIXME
       break;
 
-    case D3DRS_SHADEMODE:
+    case API(D3DRENDERSTATE_SHADEMODE):
       assert(b == 2);
       //FIXME
       break;
 
-    case D3DRS_ZWRITEENABLE:
+    case API(D3DRENDERSTATE_ZWRITEENABLE):
       glDepthMask(b ? GL_TRUE : GL_FALSE);
       break;
 
-    case D3DRS_ALPHATESTENABLE:
+    case API(D3DRENDERSTATE_ALPHATESTENABLE):
       //FIXME: Does not exist in GL 3.3 anymore
       //glSet(GL_ALPHA_TEST, b);
       break;
 
-    case D3DRS_SRCBLEND:
+    case API(D3DRENDERSTATE_SRCBLEND):
       srcBlend = mapBlend(b);
       break;
 
-    case D3DRS_DESTBLEND:
+    case API(D3DRENDERSTATE_DESTBLEND):
       destBlend = mapBlend(b);
       break;
 
-    case D3DRS_CULLMODE:
+    case API(D3DRENDERSTATE_CULLMODE):
       assert(b == 1);
       //FIXME
       break;
 
-    case D3DRS_ZFUNC:
+    case API(D3DRENDERSTATE_ZFUNC):
       assert(b == 4);
       //FIXME
       break;
 
-    case D3DRS_ALPHAFUNC:
+    case API(D3DRENDERSTATE_ALPHAFUNC):
       assert(b == 6);
       //FIXME
       break;
 
-    case D3DRS_DITHERENABLE:
+    case API(D3DRENDERSTATE_DITHERENABLE):
       glSet(GL_DITHER, b);
       break;
 
-    case D3DRS_ALPHABLENDENABLE:
+    case API(D3DRENDERSTATE_ALPHABLENDENABLE):
       glSet(GL_BLEND, b);
       break;
 
     //FIXME: Is this a bug? there doesn't seem to be lighting..
-    case D3DRS_SPECULARENABLE:
+    case API(D3DRENDERSTATE_SPECULARENABLE):
       //FIXME
       break;
 
-    case D3DRENDERSTATE_FOGENABLE:
+    case API(D3DRENDERSTATE_FOGENABLE):
       fogEnable = b;
       break;
-    case D3DRS_FOGCOLOR:
+    case API(D3DRENDERSTATE_FOGCOLOR):
       fogColor = b;
       break;
-    case D3DRS_FOGSTART:
+    case API(D3DRENDERSTATE_FOGTABLESTART):
       fogStart = *(float*)&b;
       break;
-    case D3DRS_FOGEND:
+    case API(D3DRENDERSTATE_FOGTABLEEND):
       fogEnd = *(float*)&b;
       break;
     default:
@@ -2767,7 +2775,7 @@ HACKY_COM_BEGIN(IDirect3DDevice3, 38)
   hacky_printf("b 0x%" PRIX32 "\n", b);
 
   if (b != 0) {
-    Direct3DTexture2* texture = Memory(b);
+    API(Direct3DTexture2)* texture = Memory(b);
     glActiveTexture(GL_TEXTURE0);
     glBindTexture(GL_TEXTURE_2D, texture->handle);
   } else {
@@ -2808,7 +2816,7 @@ HACKY_COM_BEGIN(IDirect3DTexture2, 0)
   hacky_printf("a 0x%" PRIX32 "\n", stack[2]);
   hacky_printf("b 0x%" PRIX32 "\n", stack[3]);
 
-  const IID* iid = (const IID*)Memory(stack[2]);
+  const API(IID)* iid = (const API(IID)*)Memory(stack[2]);
 
   char iidString[1024];
   sprintf(iidString, "%08" PRIX32 "-%04" PRIX16 "-%04" PRIX16 "-%02" PRIX8 "%02" PRIX8 "-%02" PRIX8 "%02" PRIX8 "%02" PRIX8 "%02" PRIX8 "%02" PRIX8 "%02" PRIX8,
@@ -2821,7 +2829,7 @@ HACKY_COM_BEGIN(IDirect3DTexture2, 0)
   //FIXME: Add more classed / interfaces
 
   if (!strcmp(iidString, "0B2B8630-AD35-11D0-8EA6-00609797EA5B")) {
-    Direct3DTexture2* this = Memory(stack[1]);
+    API(Direct3DTexture2)* this = Memory(stack[1]);
     *(Address*)Memory(stack[3]) = this->surface;
   } else {
     assert(false);
@@ -2854,8 +2862,8 @@ HACKY_COM_BEGIN(IDirect3DTexture2, 5)
   hacky_printf("p 0x%" PRIX32 "\n", stack[1]);
   hacky_printf("a 0x%" PRIX32 "\n", stack[2]);
 
-  Direct3DTexture2* this = Memory(stack[1]);
-  Direct3DTexture2* a = Memory(stack[2]);
+  API(Direct3DTexture2)* this = Memory(stack[1]);
+  API(Direct3DTexture2)* a = Memory(stack[2]);
   //FIXME: Dirty hack..
   this->handle = a->handle;
   eax = 0; // FIXME: No idea what this expects to return..
@@ -2880,8 +2888,8 @@ HACKY_COM_END()
 HACKY_COM_BEGIN(IDirect3DViewport3, 17)
   hacky_printf("p 0x%" PRIX32 "\n", stack[1]);
   hacky_printf("a 0x%" PRIX32 "\n", stack[2]);
-  D3DVIEWPORT2* vp = (D3DVIEWPORT2*)Memory(stack[2]);
-  assert(vp->dwSize == sizeof(D3DVIEWPORT2));
+  API(D3DVIEWPORT2)* vp = (API(D3DVIEWPORT2)*)Memory(stack[2]);
+  assert(vp->dwSize == sizeof(API(D3DVIEWPORT2)));
 
   clipScale[0] = 2.0f / vp->dvClipWidth;
   clipScale[1] = 2.0f / vp->dvClipHeight;
@@ -2906,13 +2914,13 @@ HACKY_COM_BEGIN(IDirect3DViewport3, 20)
   hacky_printf("f 0x%" PRIX32 "\n", stack[7]);
 
   unsigned int rectCount = stack[2];
-  D3DRECT* rects = Memory(stack[3]);
+  API(D3DRECT)* rects = Memory(stack[3]);
 
   glEnable(GL_SCISSOR_TEST);
   GLint viewport[4];
   glGetIntegerv(GL_VIEWPORT, viewport);
   for(unsigned int i = 0; i < rectCount; i++) {
-    D3DRECT* rect = &rects[i];
+    API(D3DRECT)* rect = &rects[i];
     //FIXME: Clip to viewport..
     int width = rect->x2 - rect->x1;
     int height = rect->y2 -  rect->y1;
@@ -2931,9 +2939,9 @@ HACKY_COM_BEGIN(IDirect3DViewport3, 20)
     glClearStencil(stencilValue);
     glClearDepth(zValue);
     glClearColor(r, g, b, a);
-    glClear(((flags & D3DCLEAR_TARGET) ? GL_COLOR_BUFFER_BIT : 0) |
-            ((flags & D3DCLEAR_ZBUFFER) ? GL_DEPTH_BUFFER_BIT : 0) |
-            ((flags & D3DCLEAR_STENCIL) ? GL_STENCIL_BUFFER_BIT : 0));
+    glClear(((flags & API(D3DCLEAR_TARGET)) ? GL_COLOR_BUFFER_BIT : 0) |
+            ((flags & API(D3DCLEAR_ZBUFFER)) ? GL_DEPTH_BUFFER_BIT : 0) |
+            ((flags & API(D3DCLEAR_STENCIL)) ? GL_STENCIL_BUFFER_BIT : 0));
   }
   glDisable(GL_SCISSOR_TEST);
 
@@ -3000,13 +3008,13 @@ void UpdateKeyboardState() {
   const uint8_t pressed = 0x80; // This is the only requirement for pressed keys
   const uint8_t unpressed = 0x00;
   memset(keyboardState, 0x00, 256);
-  keyboardState[DIK_ESCAPE] = sdlState[SDL_SCANCODE_ESCAPE] ? pressed : unpressed;
-  keyboardState[DIK_RETURN] = sdlState[SDL_SCANCODE_RETURN] ? pressed : unpressed;
-  keyboardState[DIK_SPACE] = sdlState[SDL_SCANCODE_SPACE] ? pressed : unpressed;
-  keyboardState[DIK_UP] = sdlState[SDL_SCANCODE_UP] ? pressed : unpressed;
-  keyboardState[DIK_DOWN] = sdlState[SDL_SCANCODE_DOWN] ? pressed : unpressed;
-  keyboardState[DIK_LEFT] = sdlState[SDL_SCANCODE_LEFT] ? pressed : unpressed;
-  keyboardState[DIK_RIGHT] = sdlState[SDL_SCANCODE_RIGHT] ? pressed : unpressed;
+  keyboardState[API(DIK_ESCAPE)] = sdlState[SDL_SCANCODE_ESCAPE] ? pressed : unpressed;
+  keyboardState[API(DIK_RETURN)] = sdlState[SDL_SCANCODE_RETURN] ? pressed : unpressed;
+  keyboardState[API(DIK_SPACE)] = sdlState[SDL_SCANCODE_SPACE] ? pressed : unpressed;
+  keyboardState[API(DIK_UP)] = sdlState[SDL_SCANCODE_UP] ? pressed : unpressed;
+  keyboardState[API(DIK_DOWN)] = sdlState[SDL_SCANCODE_DOWN] ? pressed : unpressed;
+  keyboardState[API(DIK_LEFT)] = sdlState[SDL_SCANCODE_LEFT] ? pressed : unpressed;
+  keyboardState[API(DIK_RIGHT)] = sdlState[SDL_SCANCODE_RIGHT] ? pressed : unpressed;
 }
 
 // IDirectInputDeviceA -> STDMETHOD(GetDeviceState)(THIS_ DWORD,LPVOID) PURE; // 9
@@ -3040,11 +3048,11 @@ HACKY_COM_BEGIN(IDirectInputDeviceA, 10)
   printf("max count is %d\n", max_count);
   *count = 0;
   unsigned int objectSize = stack[2];
-  assert(objectSize == sizeof(DIDEVICEOBJECTDATA));
+  assert(objectSize == sizeof(API(DIDEVICEOBJECTDATA)));
   for(unsigned int i = 0; i < 256; i++) {
     if (keyboardState[i] != previousState[i]) {
       if (*count < max_count) {
-        DIDEVICEOBJECTDATA objectData;
+        API(DIDEVICEOBJECTDATA) objectData;
         memset(&objectData, 0x00, sizeof(objectData));
         objectData.dwOfs = i;
         objectData.dwData = keyboardState[i];
@@ -3200,15 +3208,17 @@ HACKY_COM_BEGIN(IDirectInputA, 4)
     esp -= 4;
     *(uint32_t*)Memory(esp) = c; // pvRef
 
-    Address ddiAddress = Allocate(sizeof(DIDEVICEINSTANCEA));
-    DIDEVICEINSTANCEA* ddi = Memory(ddiAddress);
-    memset(ddi, 0x00, sizeof(DIDEVICEINSTANCEA));
+    Address ddiAddress = Allocate(sizeof(API(DIDEVICEINSTANCEA)));
+    API(DIDEVICEINSTANCEA)* ddi = Memory(ddiAddress);
+    memset(ddi, 0x00, sizeof(API(DIDEVICEINSTANCEA)));
 
-    ddi->dwSize = sizeof(DIDEVICEINSTANCEA);
+    ddi->dwSize = sizeof(API(DIDEVICEINSTANCEA));
     //FIXME:    GUID guidInstance;
     //FIXME:    GUID guidProduct;
-    #define DIDEVTYPE_KEYBOARD          3
-    ddi->dwDevType = DIDEVTYPE_KEYBOARD; // or something
+    enum {
+      API(DIDEVTYPE_KEYBOARD) = 3
+    };
+    ddi->dwDevType = API(DIDEVTYPE_KEYBOARD); // or something
     sprintf(ddi->tszInstanceName, "OpenSWE1R Keyboard 1"); // TCHAR tszInstanceName[MAX_PATH];
     sprintf(ddi->tszProductName, "OpenSWE1R Keyboard"); // TCHAR tszProductName[MAX_PATH];
     //FIXME:    GUID guidFFDriver;
@@ -3425,11 +3435,11 @@ Exe* LoadExe(const char* path) {
     uint32_t relocationRva = exe->peHeader.imageBase + exe->dataDirectories[5].virtualAddress;
     uint32_t remainingSize = exe->dataDirectories[5].size;
 
-    while(remainingSize >= sizeof(IMAGE_BASE_RELOCATION)) {
-      IMAGE_BASE_RELOCATION* baseRelocation = Memory(relocationRva);
-      assert(baseRelocation->sizeOfBlock >= sizeof(IMAGE_BASE_RELOCATION));
+    while(remainingSize >= sizeof(API(IMAGE_BASE_RELOCATION))) {
+      API(IMAGE_BASE_RELOCATION)* baseRelocation = Memory(relocationRva);
+      assert(baseRelocation->sizeOfBlock >= sizeof(API(IMAGE_BASE_RELOCATION)));
 
-      unsigned int relocationCount = (baseRelocation->sizeOfBlock - sizeof(IMAGE_BASE_RELOCATION)) / 2;
+      unsigned int relocationCount = (baseRelocation->sizeOfBlock - sizeof(API(IMAGE_BASE_RELOCATION))) / 2;
       printf("Base relocation: 0x%" PRIX32 " (%d relocations)\n", baseRelocation->virtualAddress, relocationCount);
       uint16_t* relocations = Memory(relocationRva);
       for(unsigned int i = 0; i < relocationCount; i++) {
@@ -3465,11 +3475,11 @@ Exe* LoadExe(const char* path) {
     uint32_t remainingSize = exe->dataDirectories[1].size;
     printf("Import table located at 0x%" PRIX32 "\n", importRva);
     //FIXME: Should be done differently. Import table expects zero element at end which is not checked yet! (it's optional here)
-    while(remainingSize >= sizeof(IMAGE_IMPORT_DESCRIPTOR)) {
+    while(remainingSize >= sizeof(API(IMAGE_IMPORT_DESCRIPTOR))) {
 
       // Access import and check if it is valid
-      IMAGE_IMPORT_DESCRIPTOR* imports = Memory(importRva);
-      if (IsZero(imports, sizeof(IMAGE_IMPORT_DESCRIPTOR))) {
+      API(IMAGE_IMPORT_DESCRIPTOR)* imports = Memory(importRva);
+      if (IsZero(imports, sizeof(API(IMAGE_IMPORT_DESCRIPTOR)))) {
         break;
       }
 
@@ -3494,7 +3504,7 @@ Exe* LoadExe(const char* path) {
           label = malloc(128);
           sprintf(label, "<%s@%d>", name, ordinal);
         } else {
-          IMAGE_IMPORT_BY_NAME* importByName = Memory(exe->peHeader.imageBase + importByNameAddress);
+          API(IMAGE_IMPORT_BY_NAME)* importByName = Memory(exe->peHeader.imageBase + importByNameAddress);
           printf("  0x%" PRIX32 ": 0x%" PRIX16 " '%s' ..", thunkAddress, importByName->hint, importByName->name);
           label = importByName->name;
         }
@@ -3553,8 +3563,8 @@ Exe* LoadExe(const char* path) {
       }
 
       // Jump to next entry
-      importRva += sizeof(IMAGE_IMPORT_DESCRIPTOR);
-      remainingSize -= sizeof(IMAGE_IMPORT_DESCRIPTOR);
+      importRva += sizeof(API(IMAGE_IMPORT_DESCRIPTOR));
+      remainingSize -= sizeof(API(IMAGE_IMPORT_DESCRIPTOR));
     }
   }
 
