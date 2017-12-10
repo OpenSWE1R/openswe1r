@@ -2,15 +2,15 @@
 #  LIBUNICORN_FOUND
 #  LIBUNICORN_INCLUDE_DIR
 #  LIBUNICORN_LIBRARY
-# Hints:
-#  LIBUNICORN_LIBRARY_DIR
 
 find_path(LIBUNICORN_INCLUDE_DIR
-          unicorn/unicorn.h)
+          unicorn/unicorn.h
+          HINTS $ENV{UNICORNDIR}
+          PATH_SUFFIXES include)
 
 find_library(LIBUNICORN_LIBRARY
              NAMES unicorn
-             HINTS "${LIBUNICORN_LIBRARY_DIR}")
+             HINTS $ENV{UNICORNDIR})
 
 include(FindPackageHandleStandardArgs)
 find_package_handle_standard_args(unicorn DEFAULT_MSG
