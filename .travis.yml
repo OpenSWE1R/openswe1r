@@ -1,0 +1,19 @@
+language: cpp
+matrix:
+  include:
+    - os: osx
+      env: NAME="macOS build"
+      sudo: false
+      osx_image: xcode7.3
+      install: "./.travis/macos/install.sh"
+      script: "./.travis/macos/script.sh"
+    - os: linux
+      env: NAME="Ubuntu build"
+      sudo: required
+      dist: trusty
+      services: docker
+      install: "./.travis/ubuntu/install.sh"
+      script: "./.travis/ubuntu/script.sh"
+
+notifications:
+  email: false
