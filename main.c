@@ -362,6 +362,7 @@ static void LoadVertices(unsigned int vertexFormat, Address address, unsigned in
 bool depthMask;
 GLenum destBlend;
 GLenum srcBlend;
+bool alphaTest;
 uint32_t fogColor; // ARGB
 bool fogEnable;
 float fogStart;
@@ -404,6 +405,8 @@ static GLenum SetupRenderer(unsigned int primitiveType, unsigned int vertexForma
 
   glUniform1i(glGetUniformLocation(program, "tex0"), 0);
   glUniformMatrix4fv(glGetUniformLocation(program, "projectionMatrix"), 1, GL_FALSE, projectionMatrix);
+
+  glUniform1i(glGetUniformLocation(program, "alphaTest"), alphaTest);
 
   glUniform1i(glGetUniformLocation(program, "fogEnable"), fogEnable);
   glUniform1f(glGetUniformLocation(program, "fogStart"), fogStart);
@@ -2701,8 +2704,7 @@ HACKY_COM_BEGIN(IDirect3DDevice3, 22)
       break;
 
     case API(D3DRENDERSTATE_ALPHATESTENABLE):
-      //FIXME: Does not exist in GL 3.3 anymore
-      //glSet(GL_ALPHA_TEST, b);
+      alphaTest = b;
       break;
 
     case API(D3DRENDERSTATE_SRCBLEND):
@@ -2724,8 +2726,7 @@ HACKY_COM_BEGIN(IDirect3DDevice3, 22)
       break;
 
     case API(D3DRENDERSTATE_ALPHAFUNC):
-      assert(b == 6);
-      //FIXME
+      assert(b == 6); // D3DCMP_NOTEQUAL
       break;
 
     case API(D3DRENDERSTATE_DITHERENABLE):

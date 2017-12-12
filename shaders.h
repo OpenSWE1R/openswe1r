@@ -35,6 +35,7 @@ static const char* FragmentShader1Texture =
 "#version 330\n"
 "\n"
 "uniform sampler2D tex0;\n"
+"uniform bool alphaTest;\n"
 "\n"
 "in vec4 diffuse;\n"
 "in vec4 specular;\n"
@@ -49,6 +50,7 @@ static const char* FragmentShader1Texture =
 "void main() {\n"
 "  color = texture(tex0, uv0);\n"
 "  color *= diffuse;\n"
+"  if (alphaTest && !(int(round(color.a * 255.0)) != 0)) { discard; }\n"
 "}\n";
 
 #endif
