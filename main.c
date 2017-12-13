@@ -3373,6 +3373,7 @@ Exe* LoadExe(const char* path) {
   // Load the exe file and skip the DOS header
   exe->f = fopen(path, "rb");
   if (exe->f == NULL) {
+    perror(path);
     return NULL;
   }
   char dosMagic[2];
@@ -3686,6 +3687,7 @@ int main(int argc, char* argv[]) {
   Exe* exe = LoadExe(exeName);
   if (exe == NULL) {
     printf("Couldn't load '%s'\n", exeName);
+    exit(1);
   }
   RelocateExe(exe);
 
