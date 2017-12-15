@@ -803,7 +803,7 @@ HACKY_IMPORT_END()
 
 HACKY_IMPORT_BEGIN(ExitProcess)
   hacky_printf("uExitCode 0x%" PRIX32 "\n", stack[1]);
-  exit(1); //FIXME: Instead, handle this gracefully somehow?!
+  exit(EXIT_FAILURE); //FIXME: Instead, handle this gracefully somehow?!
   esp += 1 * 4;
 HACKY_IMPORT_END()
 
@@ -999,7 +999,7 @@ HACKY_IMPORT_BEGIN(PeekMessageA)
 		switch (event.type) {
 		case SDL_QUIT:
       printf("\n\nSDL Exit!\n");
-      exit(1);
+      exit(EXIT_FAILURE);
 			break;
     }
   }
@@ -3687,7 +3687,7 @@ int main(int argc, char* argv[]) {
   Exe* exe = LoadExe(exeName);
   if (exe == NULL) {
     printf("Couldn't load '%s'\n", exeName);
-    exit(1);
+    exit(EXIT_FAILURE);
   }
   RelocateExe(exe);
 
@@ -3732,5 +3732,5 @@ int main(int argc, char* argv[]) {
   RunX86(exe);
   printf("-- Exiting\n");
   UnloadExe(exe);
-  return 0;
+  return EXIT_SUCCESS;
 }
