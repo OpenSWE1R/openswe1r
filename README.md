@@ -1,4 +1,4 @@
-[![Gitter chat](https://badges.gitter.im/gitterHQ/gitter.png)](https://gitter.im/OpenSWE1R)       [![Travis build Status](https://travis-ci.org/OpenSWE1R/openswe1r.svg?branch=master)](https://travis-ci.org/OpenSWE1R/openswe1r)       [![AppVeyor Build status](https://ci.appveyor.com/api/projects/status/92s5hpto3kvn8sx3/branch/master?svg=true)](https://ci.appveyor.com/project/JayFoxRox82949/openswe1r/branch/master)
+[![Gitter chat](https://badges.gitter.im/gitterHQ/gitter.png)](https://gitter.im/OpenSWE1R)       [![CLA assistant](https://cla-assistant.io/readme/badge/OpenSWE1R/openswe1r)](https://cla-assistant.io/OpenSWE1R/openswe1r)       [![Travis build Status](https://travis-ci.org/OpenSWE1R/openswe1r.svg?branch=master)](https://travis-ci.org/OpenSWE1R/openswe1r)       [![AppVeyor Build status](https://ci.appveyor.com/api/projects/status/92s5hpto3kvn8sx3/branch/master?svg=true)](https://ci.appveyor.com/project/JayFoxRox82949/openswe1r/branch/master)
 
 ---
 
@@ -76,6 +76,9 @@ Copy it to your game folder and run it.
 
 Development happens on GitHub at https://github.com/OpenSWE1R/openswe1r
 You can help by reviewing other peoples Pull-Requests or sending your own after forking.
+
+If you want to contribute, you'll have to [sign our Contributor License Agreement (CLA)](https://cla-assistant.io/OpenSWE1R/openswe1r).
+The CLA allows us to easily switch to other [licenses the FSF classifies as Free Software License](https://www.gnu.org/licenses/license-list.html) and which are [approved by the OSI as Open Source licenses](https://opensource.org/licenses), if the need should ever arise ([more information](https://github.com/OpenSWE1R/openswe1r/pull/95)).
 
 ---
 
