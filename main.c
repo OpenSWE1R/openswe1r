@@ -359,6 +359,7 @@ static void LoadVertices(unsigned int vertexFormat, Address address, unsigned in
   glBufferData(GL_ARRAY_BUFFER, count * stride, Memory(address), GL_STREAM_DRAW);
 }
 
+bool depthMask;
 GLenum destBlend;
 GLenum srcBlend;
 uint32_t fogColor; // ARGB
@@ -434,6 +435,8 @@ static GLenum SetupRenderer(unsigned int primitiveType, unsigned int vertexForma
   // Wireframe mode
   glPolygonMode( GL_FRONT_AND_BACK, GL_LINE );
 #endif
+
+  glDepthMask(depthMask ? GL_TRUE : GL_FALSE);
 
   GLenum mode;
   switch(primitiveType) {
@@ -2645,8 +2648,6 @@ HACKY_COM_BEGIN(IDirect3DDevice3, 22)
     case API(D3DRENDERSTATE_ZENABLE):
       //FIXME
       glSet(GL_DEPTH_TEST, b);
-      // Hack: While Z is not correct, we can't turn on z-test
-      glDisable(GL_DEPTH_TEST);
       break;
 
     case API(D3DRENDERSTATE_FILLMODE):
@@ -2660,7 +2661,7 @@ HACKY_COM_BEGIN(IDirect3DDevice3, 22)
       break;
 
     case API(D3DRENDERSTATE_ZWRITEENABLE):
-      glDepthMask(b ? GL_TRUE : GL_FALSE);
+      depthMask = b;
       break;
 
     case API(D3DRENDERSTATE_ALPHATESTENABLE):
@@ -2683,7 +2684,7 @@ HACKY_COM_BEGIN(IDirect3DDevice3, 22)
 
     case API(D3DRENDERSTATE_ZFUNC):
       assert(b == 4);
-      //FIXME
+      glDepthFunc(GL_LEQUAL);
       break;
 
     case API(D3DRENDERSTATE_ALPHAFUNC):
