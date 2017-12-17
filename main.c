@@ -2039,10 +2039,34 @@ HACKY_COM_BEGIN(IDirectDrawSurface4, 5)
   hacky_printf("a 0x%" PRIX32 "\n", stack[2]);
   hacky_printf("b 0x%" PRIX32 "\n", stack[3]);
   hacky_printf("c 0x%" PRIX32 "\n", stack[4]);
-  hacky_printf("d 0x%" PRIX32 "\n", stack[5]);
-  hacky_printf("e 0x%" PRIX32 "\n", stack[6]);
+  uint32_t d = stack[5];
+  uint32_t e = stack[6];
+  hacky_printf("d 0x%08" PRIX32 "\n", d);
+  hacky_printf("e 0x%" PRIX32 "\n", e);
 
-  //SDL_GL_SwapWindow(sdlWindow);
+  API(DirectDrawSurface4)* this = (API(DirectDrawSurface4)*)Memory(stack[1]);
+
+  API(DDBLTFX)* bltfx = Memory(e);
+
+  assert((d & ~(API(DDBLT_COLORFILL) | API(DDBLT_WAIT) | API(DDBLT_DEPTHFILL))) == 0);
+
+  if (d & API(DDBLT_WAIT)) {
+    // nop
+  }
+
+  if (d & API(DDBLT_COLORFILL)) {
+    //FIXME: Implement color fill
+  }
+
+  if (d & API(DDBLT_DEPTHFILL)) {
+    assert(this->desc.ddsCaps.dwCaps & API(DDSCAPS_ZBUFFER));
+    assert(this->desc.ddpfPixelFormat.dwZBufferBitDepth == 16);
+
+    glDepthMask(GL_TRUE);
+    assert(bltfx->dwFillDepth = 0xFFFF);
+    glClearDepthf(1.0f); //FIXME!!
+    glClear(GL_DEPTH_BUFFER_BIT);
+  }
 
   eax = 0; // FIXME: No idea what this expects to return..
   esp += 6 * 4;
