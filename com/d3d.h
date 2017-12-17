@@ -320,4 +320,13 @@ typedef enum {
   API(D3DBLEND_INVSRCCOLOR2)     = 17
 } API(D3DBLEND);
 
+enum {
+  API(DDCAPS_3D) =              0x00000001l,
+  API(DDCAPS_BLTDEPTHFILL) =    0x10000000l
+};
+
+enum {
+  API(DDCAPS2_CANRENDERWINDOWED) = 0x00080000l
+};
+
 #endif

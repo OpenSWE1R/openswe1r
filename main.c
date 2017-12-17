@@ -1913,8 +1913,9 @@ HACKY_COM_BEGIN(IDirectDraw4, 11)
 
   printf("halCaps is %d bytes (known: %d bytes)\n", halCaps->dwSize, sizeof(API(DDCAPS)));
 
-  halCaps->dwCaps = 0x00000001;
-  halCaps->dwCaps2 = 0x00080000;
+  halCaps->dwCaps = API(DDCAPS_3D) | API(DDCAPS_BLTDEPTHFILL);
+  halCaps->dwCaps2 = API(DDCAPS2_CANRENDERWINDOWED);
+
   halCaps->dwVidMemTotal = 16*1024*1024; // 16MiB VRAM free :)
   halCaps->dwVidMemFree = 12*1024*1024; // 12MiB VRAM free :(
   
@@ -2264,7 +2265,7 @@ HACKY_COM_BEGIN(IDirect3D3, 3)
     desc->dwSize = sizeof(API(D3DDEVICEDESC));
     desc->dwFlags = 0xFFFFFFFF;
 
-    desc->dwDeviceZBufferBitDepth = 24;
+    desc->dwDeviceZBufferBitDepth = 16;
 
 enum {
   API(D3DPTEXTURECAPS_PERSPECTIVE) =   0x00000001L,
