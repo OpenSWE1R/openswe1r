@@ -359,6 +359,7 @@ static void LoadVertices(unsigned int vertexFormat, Address address, unsigned in
   glBufferData(GL_ARRAY_BUFFER, count * stride, Memory(address), GL_STREAM_DRAW);
 }
 
+bool depthMask;
 GLenum destBlend;
 GLenum srcBlend;
 uint32_t fogColor; // ARGB
@@ -434,6 +435,8 @@ static GLenum SetupRenderer(unsigned int primitiveType, unsigned int vertexForma
   // Wireframe mode
   glPolygonMode( GL_FRONT_AND_BACK, GL_LINE );
 #endif
+
+  glDepthMask(depthMask ? GL_TRUE : GL_FALSE);
 
   GLenum mode;
   switch(primitiveType) {
@@ -1913,8 +1916,9 @@ HACKY_COM_BEGIN(IDirectDraw4, 11)
 
   printf("halCaps is %d bytes (known: %d bytes)\n", halCaps->dwSize, sizeof(API(DDCAPS)));
 
-  halCaps->dwCaps = 0x00000001;
-  halCaps->dwCaps2 = 0x00080000;
+  halCaps->dwCaps = API(DDCAPS_3D) | API(DDCAPS_BLTDEPTHFILL);
+  halCaps->dwCaps2 = API(DDCAPS2_CANRENDERWINDOWED);
+
   halCaps->dwVidMemTotal = 16*1024*1024; // 16MiB VRAM free :)
   halCaps->dwVidMemFree = 12*1024*1024; // 12MiB VRAM free :(
   
@@ -2038,10 +2042,34 @@ HACKY_COM_BEGIN(IDirectDrawSurface4, 5)
   hacky_printf("a 0x%" PRIX32 "\n", stack[2]);
   hacky_printf("b 0x%" PRIX32 "\n", stack[3]);
   hacky_printf("c 0x%" PRIX32 "\n", stack[4]);
-  hacky_printf("d 0x%" PRIX32 "\n", stack[5]);
-  hacky_printf("e 0x%" PRIX32 "\n", stack[6]);
+  uint32_t d = stack[5];
+  uint32_t e = stack[6];
+  hacky_printf("d 0x%08" PRIX32 "\n", d);
+  hacky_printf("e 0x%" PRIX32 "\n", e);
 
-  //SDL_GL_SwapWindow(sdlWindow);
+  API(DirectDrawSurface4)* this = (API(DirectDrawSurface4)*)Memory(stack[1]);
+
+  API(DDBLTFX)* bltfx = Memory(e);
+
+  assert((d & ~(API(DDBLT_COLORFILL) | API(DDBLT_WAIT) | API(DDBLT_DEPTHFILL))) == 0);
+
+  if (d & API(DDBLT_WAIT)) {
+    // nop
+  }
+
+  if (d & API(DDBLT_COLORFILL)) {
+    //FIXME: Implement color fill
+  }
+
+  if (d & API(DDBLT_DEPTHFILL)) {
+    assert(this->desc.ddsCaps.dwCaps & API(DDSCAPS_ZBUFFER));
+    assert(this->desc.ddpfPixelFormat.dwZBufferBitDepth == 16);
+
+    glDepthMask(GL_TRUE);
+    assert(bltfx->dwFillDepth = 0xFFFF);
+    glClearDepthf(1.0f); //FIXME!!
+    glClear(GL_DEPTH_BUFFER_BIT);
+  }
 
   eax = 0; // FIXME: No idea what this expects to return..
   esp += 6 * 4;
@@ -2264,7 +2292,7 @@ HACKY_COM_BEGIN(IDirect3D3, 3)
     desc->dwSize = sizeof(API(D3DDEVICEDESC));
     desc->dwFlags = 0xFFFFFFFF;
 
-    desc->dwDeviceZBufferBitDepth = 24;
+    desc->dwDeviceZBufferBitDepth = 16;
 
 enum {
   API(D3DPTEXTURECAPS_PERSPECTIVE) =   0x00000001L,
@@ -2620,8 +2648,6 @@ HACKY_COM_BEGIN(IDirect3DDevice3, 22)
     case API(D3DRENDERSTATE_ZENABLE):
       //FIXME
       glSet(GL_DEPTH_TEST, b);
-      // Hack: While Z is not correct, we can't turn on z-test
-      glDisable(GL_DEPTH_TEST);
       break;
 
     case API(D3DRENDERSTATE_FILLMODE):
@@ -2635,7 +2661,7 @@ HACKY_COM_BEGIN(IDirect3DDevice3, 22)
       break;
 
     case API(D3DRENDERSTATE_ZWRITEENABLE):
-      glDepthMask(b ? GL_TRUE : GL_FALSE);
+      depthMask = b;
       break;
 
     case API(D3DRENDERSTATE_ALPHATESTENABLE):
@@ -2658,7 +2684,7 @@ HACKY_COM_BEGIN(IDirect3DDevice3, 22)
 
     case API(D3DRENDERSTATE_ZFUNC):
       assert(b == 4);
-      //FIXME
+      glDepthFunc(GL_LEQUAL);
       break;
 
     case API(D3DRENDERSTATE_ALPHAFUNC):
