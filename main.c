@@ -3040,6 +3040,38 @@ void UpdateKeyboardState() {
   keyboardState[API(DIK_DOWN)] = sdlState[SDL_SCANCODE_DOWN] ? pressed : unpressed;
   keyboardState[API(DIK_LEFT)] = sdlState[SDL_SCANCODE_LEFT] ? pressed : unpressed;
   keyboardState[API(DIK_RIGHT)] = sdlState[SDL_SCANCODE_RIGHT] ? pressed : unpressed;
+  keyboardState[API(DIK_Q)] = sdlState[SDL_SCANCODE_Q] ? pressed : unpressed;
+  keyboardState[API(DIK_W)] = sdlState[SDL_SCANCODE_W] ? pressed : unpressed;
+  keyboardState[API(DIK_E)] = sdlState[SDL_SCANCODE_E] ? pressed : unpressed;
+  keyboardState[API(DIK_R)] = sdlState[SDL_SCANCODE_R] ? pressed : unpressed;
+  keyboardState[API(DIK_I)] = sdlState[SDL_SCANCODE_I] ? pressed : unpressed;
+  keyboardState[API(DIK_A)] = sdlState[SDL_SCANCODE_A] ? pressed : unpressed;
+  keyboardState[API(DIK_S)] = sdlState[SDL_SCANCODE_S] ? pressed : unpressed;
+  keyboardState[API(DIK_D)] = sdlState[SDL_SCANCODE_D] ? pressed : unpressed;
+  keyboardState[API(DIK_F)] = sdlState[SDL_SCANCODE_F] ? pressed : unpressed;
+  keyboardState[API(DIK_J)] = sdlState[SDL_SCANCODE_J] ? pressed : unpressed;
+  keyboardState[API(DIK_K)] = sdlState[SDL_SCANCODE_K] ? pressed : unpressed;
+  keyboardState[API(DIK_L)] = sdlState[SDL_SCANCODE_L] ? pressed : unpressed;
+  keyboardState[API(DIK_M)] = sdlState[SDL_SCANCODE_M] ? pressed : unpressed;
+  keyboardState[API(DIK_F1)] = sdlState[SDL_SCANCODE_F1] ? pressed : unpressed;
+  keyboardState[API(DIK_F2)] = sdlState[SDL_SCANCODE_F2] ? pressed : unpressed;
+  keyboardState[API(DIK_F3)] = sdlState[SDL_SCANCODE_F3] ? pressed : unpressed;
+  keyboardState[API(DIK_F4)] = sdlState[SDL_SCANCODE_F4] ? pressed : unpressed;
+  keyboardState[API(DIK_F5)] = sdlState[SDL_SCANCODE_F5] ? pressed : unpressed;
+  keyboardState[API(DIK_F6)] = sdlState[SDL_SCANCODE_F6] ? pressed : unpressed;
+  keyboardState[API(DIK_F7)] = sdlState[SDL_SCANCODE_F7] ? pressed : unpressed;
+  keyboardState[API(DIK_F12)] = sdlState[SDL_SCANCODE_F12] ? pressed : unpressed;
+  keyboardState[API(DIK_GRAVE)] = sdlState[SDL_SCANCODE_GRAVE] ? pressed : unpressed;
+  keyboardState[API(DIK_EQUALS )] = sdlState[SDL_SCANCODE_EQUALS] ? pressed : unpressed;
+  keyboardState[API(DIK_MINUS)] = sdlState[SDL_SCANCODE_MINUS] ? pressed : unpressed;
+  keyboardState[API(DIK_TAB)] = sdlState[SDL_SCANCODE_TAB] ? pressed : unpressed;
+  keyboardState[API(DIK_CAPSLOCK)] = sdlState[SDL_SCANCODE_CAPSLOCK] ? pressed : unpressed;
+  keyboardState[API(DIK_LSHIFT)] = sdlState[SDL_SCANCODE_LSHIFT] ? pressed : unpressed;
+  keyboardState[API(DIK_RSHIFT)] = sdlState[SDL_SCANCODE_RSHIFT] ? pressed : unpressed;
+  keyboardState[API(DIK_LCONTROL)] = sdlState[SDL_SCANCODE_LCTRL] ? pressed : unpressed;
+  keyboardState[API(DIK_RCONTROL)] = sdlState[SDL_SCANCODE_RCTRL] ? pressed : unpressed;
+  keyboardState[API(DIK_LALT)] = sdlState[SDL_SCANCODE_LALT] ? pressed : unpressed;
+  keyboardState[API(DIK_RALT)] = sdlState[SDL_SCANCODE_RALT] ? pressed : unpressed;
 }
 
 // IDirectInputDeviceA -> STDMETHOD(GetDeviceState)(THIS_ DWORD,LPVOID) PURE; // 9
