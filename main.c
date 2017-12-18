@@ -2488,6 +2488,14 @@ HACKY_COM_BEGIN(IDirect3DDevice3, 3)
   hacky_printf("p 0x%" PRIX32 "\n", stack[1]);
   hacky_printf("a 0x%" PRIX32 "\n", stack[2]);
   hacky_printf("b 0x%" PRIX32 "\n", stack[3]);
+
+  API(D3DDEVICEDESC)* desc = (API(D3DDEVICEDESC)*)Memory(stack[2]);
+  uint32_t size = desc->dwSize;
+  memset(desc, 0x00, size);
+  desc->dwSize = size;
+  desc->dpcTriCaps.dwTextureBlendCaps = 0;
+  desc->dpcTriCaps.dwTextureBlendCaps |= API(D3DPTBLENDCAPS_MODULATEALPHA);
+
   eax = 0; // FIXME: No idea what this expects to return..
   esp += 3 * 4;
 HACKY_COM_END()
