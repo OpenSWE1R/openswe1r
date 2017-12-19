@@ -2175,6 +2175,34 @@ HACKY_COM_BEGIN(IDirectDrawSurface4, 25)
     memset(Memory(this->desc.lpSurface), 0x77, this->desc.dwHeight * this->desc.lPitch);
   }
 
+
+  if (this->desc.ddsCaps.dwCaps & API(DDSCAPS_ZBUFFER)) {
+    assert(this->desc.lPitch == 2 * this->desc.dwWidth);
+
+    uint8_t* pixel_buffer = Memory(this->desc.lpSurface);
+    glReadPixels(0, 0, this->desc.dwWidth, this->desc.dwHeight, GL_DEPTH_COMPONENT, GL_UNSIGNED_SHORT, pixel_buffer);
+
+    // Reserve a buffer for swapping lines during image flipping
+    static size_t line_buffer_size = 0;
+    static uint8_t* line_buffer = NULL;
+    size_t line_size = this->desc.dwWidth * 2;
+    if (line_size > line_buffer_size) {
+      line_buffer = realloc(line_buffer, line_size);
+      line_buffer_size = line_size;
+    }
+
+    // Do the vertical flip
+    for(unsigned int i = 0; i < this->desc.dwHeight / 2; i++) {
+      uint8_t* line_a = &pixel_buffer[this->desc.lPitch * i];
+      uint8_t* line_b = &pixel_buffer[this->desc.lPitch * (this->desc.dwHeight - 1 - i)];
+      memcpy(line_buffer, line_a, line_size);
+      memcpy(line_a, line_b, line_size);
+      memcpy(line_b, line_buffer, line_size);
+    }
+
+  }
+
+
   API(DDSURFACEDESC2)* desc = Memory(stack[3]);
   memcpy(desc, &this->desc, sizeof(API(DDSURFACEDESC2)));
   
@@ -2488,6 +2516,14 @@ HACKY_COM_BEGIN(IDirect3DDevice3, 3)
   hacky_printf("p 0x%" PRIX32 "\n", stack[1]);
   hacky_printf("a 0x%" PRIX32 "\n", stack[2]);
   hacky_printf("b 0x%" PRIX32 "\n", stack[3]);
+
+  API(D3DDEVICEDESC)* desc = (API(D3DDEVICEDESC)*)Memory(stack[2]);
+  uint32_t size = desc->dwSize;
+  memset(desc, 0x00, size);
+  desc->dwSize = size;
+  desc->dpcTriCaps.dwTextureBlendCaps = 0;
+  desc->dpcTriCaps.dwTextureBlendCaps |= API(D3DPTBLENDCAPS_MODULATEALPHA);
+
   eax = 0; // FIXME: No idea what this expects to return..
   esp += 3 * 4;
 HACKY_COM_END()
