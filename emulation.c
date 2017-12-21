@@ -166,6 +166,109 @@ static void UcTraceHook(void* uc, uint64_t address, uint32_t size, void* user_da
   printf("%7" PRIu32 " TRACE Emulation at 0x%X (ESP: 0x%X); eax = 0x%08" PRIX32 " esi = 0x%08" PRIX32 " (TS: %" PRIu64 ")\n", id++, eip, esp, eax, esi, SDL_GetTicks());
 }
 
+typedef struct {
+  bool is_called;
+  bool is_block_enter;
+  bool is_block_exit;
+  uint64_t count;
+  uint64_t duration;
+} Heat;
+
+// Contains 0x10000 pointers to heat pages (each 0x10000 elements)
+static Heat** heat = NULL;
+static bool heat_is_block_enter_next = false;
+static bool heat_is_called_next = false;
+static uint32_t heat_address = 0;
+
+// Callback for profiling instructions
+static void UcProfilingBlockHook(uc_engine *uc, uint64_t address, uint32_t size, void *user_data) {
+  heat_is_block_enter_next = true;
+  // Check where we originated and what kind of instruction it is
+  if (heat_address != 0) {
+    uint8_t* opcode = (uint8_t*)Memory(heat_address);
+    if (opcode[0] == 0x9A) {
+      heat_is_called_next = true;
+    } else if (opcode[0] == 0xE8) {
+      heat_is_called_next = true;
+    } else if (opcode[0] == 0xFF) {
+      uint8_t mod = opcode[1] >> 3;
+      heat_is_called_next = ((mod == 2) || (mod == 3));
+    }
+  }
+}
+
+static void UcProfilingHook(void* uc, uint64_t address, uint32_t size, void* user_data) {
+  static Uint64 instruction_started = 0;
+  static bool is_called = false;
+  static bool is_block_enter = false;
+  if (heat_address != 0) {
+    Uint64 instruction_finished = SDL_GetPerformanceCounter();
+
+    uint64_t duration = instruction_finished - instruction_started;
+    duration *= 1000000000ULL;
+    duration /= SDL_GetPerformanceFrequency();
+
+    if (heat == NULL) {
+      heat = malloc(0x10000 * sizeof(Heat*));
+      memset(heat, 0x00, 0x10000 * sizeof(Heat*));
+    }
+
+    uint32_t page = heat_address >> 16;
+    uint32_t index = heat_address & 0xFFFF;
+    if (heat[page] == NULL) {
+      heat[page] = malloc(0x10000 * sizeof(Heat));
+      memset(heat[page], 0x00, 0x10000 * sizeof(Heat));
+    }
+    Heat* h = &heat[page][index];
+    h->count += 1;
+    h->duration += duration;
+    h->is_called |= is_called;
+    h->is_block_enter |= is_block_enter;
+    h->is_block_exit |= heat_is_block_enter_next;
+  }
+  instruction_started = SDL_GetPerformanceCounter();
+  heat_address = address;
+  is_called = heat_is_called_next;
+  is_block_enter = heat_is_block_enter_next;
+  
+  // Assume that the next instruction won't be a block / called again.
+  // The block handler will signal it again if that's the case.
+  heat_is_called_next = false;
+  heat_is_block_enter_next = false;
+}
+
+void DumpProfilingHeat(const char* path) {
+  FILE* f;
+  if (path == NULL) {
+    f = stdout;
+  } else {
+    f = fopen(path, "w");
+  }
+
+  for(uint32_t page = 0; page < 0x10000; page++) {
+    if (heat[page] == NULL) {
+      continue;
+    }
+    for(uint32_t index = 0; index < 0x10000; index++) {
+      Heat* h = &heat[page][index];
+      if (h->count == 0) {
+        continue;
+      }
+      fprintf(f, "PROF 0x%08" PRIX32 " %14" PRIu64 " %14" PRIu64 "%s%s%s\n",
+              (page << 16) | index,
+              h->count,
+              h->duration,
+              h->is_called ? " CALLED" : "",
+              h->is_block_enter ? " BLOCK_ENTER" : "",
+              h->is_block_exit ? " BLOCK_EXIT" : "");
+    }
+  }
+
+  if (f != stdout) {
+    fclose(f);
+  }
+}
+
 void MapMemory(void* memory, uint32_t address, uint32_t size, bool read, bool write, bool execute) {
   //FIXME: Permissions!
   uc_err err;
@@ -396,6 +499,44 @@ void SetTracing(bool enabled) {
   }
 }
 
+void SetProfiling(bool enabled) {
+
+  // First, clear the old heatmap if it exists
+  if (heat != NULL) {
+    for(uint32_t page = 0; page < 0x10000; page++) {
+      if (heat[page] != NULL) {
+        free(heat[page]);
+      }
+    }
+    free(heat);
+    heat = NULL;
+
+    // Setting address to zero signals that no profiling sample has started
+    heat_address = 0;
+
+    printf("Profiling heat has been cleared\n");
+  }
+
+  static uc_hook profilingBlockHook = -1;
+  static uc_hook profilingHook = -1;
+  if (enabled) {
+    if (profilingBlockHook == -1) {
+      uc_hook_add(uc, &profilingBlockHook, UC_HOOK_BLOCK, UcProfilingBlockHook, NULL, 1, 0);
+    }
+    if (profilingHook == -1) {
+      uc_hook_add(uc, &profilingHook, UC_HOOK_CODE, UcProfilingHook, NULL, 1, 0);
+    }
+  } else {
+    if (profilingBlockHook != -1) {
+      uc_hook_del(uc, profilingBlockHook);
+      profilingBlockHook = -1;
+    }
+    if (profilingHook != -1) {
+      uc_hook_del(uc, profilingHook);
+      profilingHook = -1;
+    }
+  }
+}
 
 unsigned int CreateEmulatedThread(uint32_t eip) {
 
