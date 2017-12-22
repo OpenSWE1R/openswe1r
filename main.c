@@ -1295,6 +1295,26 @@ HACKY_IMPORT_BEGIN(DeleteCriticalSection)
   esp += 1 * 4;
 HACKY_IMPORT_END()
 
+HACKY_IMPORT_BEGIN(SuspendThread)
+  hacky_printf("hThread 0x%" PRIX32 "\n", stack[1]);
+  eax = 0; // FIXME: Suspend count or -1 in case of error
+  esp += 1 * 4;
+HACKY_IMPORT_END()
+
+HACKY_IMPORT_BEGIN(ResumeThread)
+  hacky_printf("hThread 0x%" PRIX32 "\n", stack[1]);
+  eax = 0; // FIXME: Suspend count or -1 in case of error
+  esp += 1 * 4;
+HACKY_IMPORT_END()
+
+HACKY_IMPORT_BEGIN(TerminateThread)
+  hacky_printf("hThread 0x%" PRIX32 "\n", stack[1]);
+  hacky_printf("dwExitCode 0x%" PRIX32 "\n", stack[2]);
+  //FIXME: This should exit the particular thread
+  eax = 1; // BOOL; non-zero on success
+  esp += 2 * 4;
+HACKY_IMPORT_END()
+
 HACKY_IMPORT_BEGIN(ExitThread)
   hacky_printf("dwExitCode 0x%" PRIX32 "\n", stack[1]);
   printf("\n\n\n\n\nMASSIVE HACK! STARTING NOW!\n\n\n\n\n");
