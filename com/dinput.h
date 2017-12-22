@@ -1,3 +1,7 @@
+// Copyright 2017 OpenSWE1R Maintainers
+// Licensed under GPLv2 or any later version
+// Refer to the included LICENSE.txt file.
+
 #ifndef __OPENSWE1R_COM_DINPUT_H__
 #define __OPENSWE1R_COM_DINPUT_H__
 

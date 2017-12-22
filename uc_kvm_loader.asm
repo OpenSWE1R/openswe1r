@@ -1,6 +1,6 @@
-; Copyright (c) 2011 Scott Mansell <phiren@gmail.com>
-; Licensed under the MIT license
-; Refer to the included LICENCE file.
+; Copyright 2017 OpenSWE1R Maintainers
+; Licensed under GPLv2 or any later version
+; Refer to the included LICENSE.txt file.
 
 ; Build using: nasm uc_kvm_loader.asm -o build/uc_kvm_loader
 ; Inspect using (16 bit): objdump -D -bbinary -mi8086 -Mintel --adjust-vma=0xFFFFF0000 build/uc_kvm_loader 
