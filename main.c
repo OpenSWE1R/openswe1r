@@ -132,7 +132,8 @@ Exe* exe; //FIXME: This is hack. I feel this shouldn't be exposed aside from the
 const char* exeName = "swep1rcr.exe";
 
 static char* TranslatePath(const char* path) {
-  char* newPath = malloc(strlen(path) + 1);
+  size_t length = strlen(path) + 1;
+  char* newPath = malloc(length);
   char* cursor = strcpy(newPath, path);
   while(*cursor != '\0') {
     if (*cursor == '\\') {
@@ -142,6 +143,14 @@ static char* TranslatePath(const char* path) {
     }
     cursor++;
   }
+
+  // The CD install folder will be mapped back to our current directory.
+  // This allows easier installation (by simply copying all files from disc)
+  if ((length >= 9) && !memcmp(newPath, "d:/gnome/", 9)) {
+    memcpy(newPath, "./", 2);
+    memmove(&newPath[2], &newPath[9], length - 9);
+  }
+
   return newPath;
 }
 
@@ -1057,7 +1066,15 @@ HACKY_IMPORT_BEGIN(RegQueryValueExA)
   hacky_printf("lpType 0x%" PRIX32 "\n", stack[4]);
   hacky_printf("lpData 0x%" PRIX32 "\n", stack[5]);
   hacky_printf("lpcbData 0x%" PRIX32 "\n", stack[6]);
-  eax = 1; // anything which is not ERROR_SUCCESS
+
+  // Patch to accept the CD
+  if (!strcmp((char*)Memory(stack[2]), "CD Path")) {
+    //FIXME: Assert that there is enough room for the path
+    strcpy(Memory(stack[5]), "D:");
+    eax = 0; // ERROR_SUCCESS
+  } else {
+    eax = 2; // ERROR_FILE_NOT_FOUND
+  }
   esp += 6 * 4;
 HACKY_IMPORT_END()
 
@@ -1639,6 +1656,38 @@ HACKY_IMPORT_BEGIN(SetErrorMode)
   //FIXME: Only stubbed for security reasons
   eax = 0; // Previous mode
   esp += 1 * 4;
+HACKY_IMPORT_END()
+
+
+
+// CD check
+
+HACKY_IMPORT_BEGIN(GetFileVersionInfoSizeA)
+  hacky_printf("lptstrFilename 0x%" PRIX32 " (%s)\n", stack[1], Memory(stack[1]));
+  hacky_printf("lpdwHandle 0x%" PRIX32 "\n", stack[2]);
+
+  if (stack[2]) {
+    *(uint32_t*)Memory(stack[2]) = 0;
+  }
+
+  eax = 0; // Size of file version info [0 means error]
+  esp += 2 * 4;
+HACKY_IMPORT_END()
+
+HACKY_IMPORT_BEGIN(GetVolumeInformationA)
+  hacky_printf("lpRootPathName 0x%" PRIX32 " (%s)\n", stack[1], Memory(stack[1]));
+  hacky_printf("lpVolumeNameBuffer 0x%" PRIX32 "\n", stack[2]);
+  hacky_printf("nVolumeNameSize %" PRIu32 "\n", stack[3]);
+  hacky_printf("lpVolumeSerialNumber 0x%" PRIX32 "\n", stack[4]);
+  hacky_printf("lpMaximumComponentLength 0x%" PRIX32 "\n", stack[5]);
+  hacky_printf("lpFileSystemFlags 0x%" PRIX32 "\n", stack[6]);
+  hacky_printf("lpFileSystemNameBuffer 0x%" PRIX32 "\n", stack[7]);
+  hacky_printf("nFileSystemNameSize %" PRIu32 "\n", stack[8]);
+
+  strcpy(Memory(stack[2]), "racer100_0");
+
+  eax = 1; // BOOL, non-zero means all requested info was available
+  esp += 8 * 4;
 HACKY_IMPORT_END()
 
 
