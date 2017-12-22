@@ -81,4 +81,5 @@ You can help by reviewing other peoples Pull-Requests or sending your own after 
 
 **© 2017 OpenSWE1R Maintainers**
 
-Licensed under GPL version 2 or later.
+Source code licensed under GPLv2 or any later version.
+Binaries which link against the default Unicorn-Engine backend must be licensed under GPLv2.
