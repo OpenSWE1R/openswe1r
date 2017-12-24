@@ -600,6 +600,18 @@ void RunEmulation() {
     while(true) {
       err = uc_emu_start(uc, ctx->eip, 0, 0, 0);
 
+      // Finish profiling, if we have partial data
+      if (heat_address != 0) {
+        // Signal block exit by marking the next instruction as block entry
+        heat_is_block_enter_next = true;
+
+        // Save the last profiling sample
+        UcProfilingHook(uc, 0, 0, NULL);
+
+        // Setting address to zero signals that no profiling sample has started
+        heat_address = 0;
+      }
+
       // Check for errors
       if (err != 0) {
         break;
