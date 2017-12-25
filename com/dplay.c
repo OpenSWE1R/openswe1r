@@ -1,3 +1,7 @@
+// Copyright 2017 OpenSWE1R Maintainers
+// Licensed under GPLv2 or any later version
+// Refer to the included LICENSE.txt file.
+
 // Stolen from ftp://ftp.physik.hu-berlin.de/pub/useful/dx7asdk/DXF/include/dplobby.h
 
 // IDirectPlayLobby3 (and IDirectPlayLobby3A) Interface

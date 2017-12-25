@@ -1,3 +1,7 @@
+// Copyright 2017 OpenSWE1R Maintainers
+// Licensed under GPLv2 or any later version
+// Refer to the included LICENSE.txt file.
+
 // Stolen from https://github.com/sekishi1259/SimpleROHook/blob/master/Injection/ProxyIDirectInput.h
 
 #if 0

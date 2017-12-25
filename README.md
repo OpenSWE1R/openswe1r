@@ -81,4 +81,13 @@ You can help by reviewing other peoples Pull-Requests or sending your own after 
 
 **© 2017 OpenSWE1R Maintainers**
 
-Licensed under GPL version 2 or later.
+Source code licensed under GPLv2 or any later version.
+Binaries which link against the default Unicorn-Engine backend must be licensed under GPLv2.
+
+OpenSWE1R is not affiliated with, endorsed by, or sponsored by The Walt Disney Company, Twenty-First Century Fox, the games original developers, publishers or any of their affiliates or subsidiaries.
+All product and company names are trademarks™ or registered® trademarks of their respective holders. Use of them does not imply any affiliation with or endorsement by them.
+
+Reverse engineering of the original software is done to achieve interoperability with other computing platforms.
+In the process, excerpts of the reverse engineered source code might be shown for educational purposes.
+
+No copyright infringement is intended at any stage during development of OpenSWE1R.
