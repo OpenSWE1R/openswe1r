@@ -2061,7 +2061,18 @@ HACKY_COM_BEGIN(IDirectDrawSurface4, 5)
   }
 
   if (d & API(DDBLT_COLORFILL)) {
-    //FIXME: Implement color fill
+    assert(!(this->desc.ddsCaps.dwCaps & API(DDSCAPS_ZBUFFER)));
+
+    //FIXME: Why is this zero during startup?!
+    if (this->desc.ddpfPixelFormat.dwRGBBitCount != 0) {
+      assert(this->desc.ddpfPixelFormat.dwRGBBitCount == 16);
+    }
+
+    glClearColor(((bltfx->dwFillColor >> 11) & 0x1F) / 31.0f,
+                 ((bltfx->dwFillColor >> 5) & 0x3F) / 63.0f,
+                 (bltfx->dwFillColor & 0x1F) / 31.0f,
+                 255.0f);
+    glClear(GL_COLOR_BUFFER_BIT);
   }
 
   if (d & API(DDBLT_DEPTHFILL)) {
@@ -2120,6 +2131,11 @@ HACKY_COM_BEGIN(IDirectDrawSurface4, 12)
     printf("Creating new dummy surface\n");
     Address surfaceAddress = CreateInterface("IDirectDrawSurface4", 50);
     API(DirectDrawSurface4)* surface = (API(DirectDrawSurface4)*)Memory(surfaceAddress);
+    memset(&surface->desc, 0x00, sizeof(surface->desc));
+
+    // FIXME: 32 bit would be ignored by the game. Keeps falling back to 16
+    surface->desc.ddpfPixelFormat.dwRGBBitCount = 16;
+
     surface->texture = 0;
     *(Address*)Memory(stack[3]) = surfaceAddress;
   }
