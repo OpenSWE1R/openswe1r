@@ -1664,7 +1664,6 @@ HACKY_IMPORT_BEGIN(RegOpenKeyExA)
   hacky_printf("ulOptions 0x%" PRIX32 "\n", stack[3]);
   hacky_printf("samDesired 0x%" PRIX32 "\n", stack[4]);
   hacky_printf("phkResult 0x%" PRIX32 "\n", stack[5]);
-  Free(stack[1]);
   eax = 0; // ERROR_SUCCESS
   esp += 5 * 4;
 HACKY_IMPORT_END()
