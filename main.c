@@ -447,6 +447,8 @@ static GLenum SetupRenderer(unsigned int primitiveType, unsigned int vertexForma
   }
 #endif
 
+  glBlendFunc(srcBlend, destBlend);
+
 #if 0
   // Wireframe mode
   glPolygonMode( GL_FRONT_AND_BACK, GL_LINE );
@@ -2925,8 +2927,6 @@ HACKY_COM_BEGIN(IDirect3DDevice3, 38)
   } else {
     glBindTexture(GL_TEXTURE_2D, 0); // FIXME: I believe this is supposed to be white?!
   }
-
-  glBlendFunc(srcBlend, destBlend);
 
   eax = 0; // FIXME: No idea what this expects to return..
   esp += 3 * 4;
