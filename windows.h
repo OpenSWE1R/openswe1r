@@ -6,6 +6,9 @@
 #define __OPENSWE1R_WINDOWS_H__
 
 #include <stdint.h>
+#include <stdarg.h>
+#include <stdlib.h>
+#include <stdio.h>
 
 #include "emulation.h"
 
@@ -79,5 +82,34 @@ enum {
   API(VK_LMENU) = 0xA4,
   API(VK_RMENU) = 0xA5
 };
+
+
+static int sprintf_ucs2(uint16_t* str, const char* fmt, ...) {
+  va_list args;
+
+  // Get string length
+  va_start(args, fmt);
+  int ret = vsnprintf(NULL, 0, fmt, args);
+  va_end(args);
+
+  // Copy string
+  char* tmp = malloc(ret + 1);
+  va_start(args, fmt);
+  ret = vsprintf(tmp, fmt, args);
+  va_end(args);
+  for(unsigned int i = 0; i <= ret; i++) {
+    str[i] = tmp[i];
+  }
+  free(tmp);
+
+  return ret;
+}
+
+static void strcpy_ucs2(uint16_t* dest, uint16_t* src) {
+  do {
+    *dest++ = *src;
+  } while(*src++ != 0);
+}
+
 
 #endif
