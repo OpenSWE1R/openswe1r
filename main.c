@@ -3867,6 +3867,22 @@ int main(int argc, char* argv[]) {
   }
   RelocateExe(exe);
 
+  // Attempt to identify the game version using the COFF timestamp
+  if (exe->coffHeader.timeDateStamp == 0x3727ce0e) {
+    printf("Game version: Retail, English\n");
+  } else if (exe->coffHeader.timeDateStamp == 0x3738c552) {
+    printf("Game version: Retail, German\n"); // International?
+  } else if (exe->coffHeader.timeDateStamp == 0x37582659) {
+    printf("Game version: Webdemo, English\n");
+  } else if (exe->coffHeader.timeDateStamp == 0x3c60692c) {
+    printf("Game version: Patched, English\n");
+  } else if (exe->coffHeader.timeDateStamp == 0x3c6321d1) {
+    printf("Game version: Patched, International\n");
+  } else {
+    printf("Game version: Unknown (COFF timestamp: 0x%08X)\n", exe->coffHeader.timeDateStamp);
+    assert(false);
+  }
+
   clearEax = Allocate(3);
   uint8_t* p = Memory(clearEax);
   *p++ = 0x31; *p++ = 0xC0; // xor eax, eax
