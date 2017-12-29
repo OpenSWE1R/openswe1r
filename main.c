@@ -2767,79 +2767,144 @@ HACKY_COM_BEGIN(IDirect3DDevice3, 22)
   uint32_t a = stack[2];
   uint32_t b = stack[3];
   switch(a) {
+    case API(D3DRENDERSTATE_TEXTUREHANDLE):
+      assert(b == 0); // Texture handle for legacy interfaces (Texture,Texture2)
+      // FIXME
+      break;
+
+    case API(D3DRENDERSTATE_ANTIALIAS):
+      assert(b == API(D3DANTIALIAS_NONE)); // D3DANTIALIASMODE
+      // FIXME
+      break;
+
+    case API(D3DRENDERSTATE_TEXTUREPERSPECTIVE):
+      assert(b == 1); // TRUE for perspective correction
+      // FIXME
+      break;
+
     case API(D3DRENDERSTATE_ZENABLE):
-      //FIXME
+      assert(b == 1); // D3DZBUFFERTYPE (or TRUE/FALSE for legacy)
       glSet(GL_DEPTH_TEST, b);
       break;
 
     case API(D3DRENDERSTATE_FILLMODE):
-      assert(b == 3);
-      //FIXME
+      assert(b == API(D3DFILL_SOLID)); // D3DFILLMODE
+      // FIXME
       break;
 
     case API(D3DRENDERSTATE_SHADEMODE):
-      assert(b == 2);
-      //FIXME
+      assert(b == API(D3DSHADE_GOURAUD)); // D3DSHADEMODE
+      // FIXME
+      break;
+
+    case API(D3DRENDERSTATE_MONOENABLE):
+      assert(b == 0); // TRUE to enable mono rasterization
+      // FIXME
       break;
 
     case API(D3DRENDERSTATE_ZWRITEENABLE):
+      assert((b == 0) || (b == 1)); // TRUE to enable z writes
       depthMask = b;
       break;
 
     case API(D3DRENDERSTATE_ALPHATESTENABLE):
+      assert(b == 1); // TRUE to enable alpha tests
       alphaTest = b;
       break;
 
+    case API(D3DRENDERSTATE_TEXTUREMIN):
+      assert(b == API(D3DFILTER_MIPNEAREST)); // D3DTEXTUREFILTER
+      // FIXME
+      break;
+
     case API(D3DRENDERSTATE_SRCBLEND):
+      assert(b == API(D3DBLEND_SRCALPHA)); // D3DBLEND
       srcBlend = mapBlend(b);
       break;
 
     case API(D3DRENDERSTATE_DESTBLEND):
+      assert(b == API(D3DBLEND_INVSRCALPHA)); // D3DBLEND
       destBlend = mapBlend(b);
       break;
 
+    case API(D3DRENDERSTATE_TEXTUREMAPBLEND):
+      assert((b == API(D3DTBLEND_MODULATE)) || (b == API(D3DTBLEND_MODULATEALPHA))); // D3DTEXTUREBLEND
+      // FIXME
+      break;
+
     case API(D3DRENDERSTATE_CULLMODE):
-      assert(b == 1);
-      //FIXME
+      assert(b == API(D3DCULL_NONE)); // D3DCULL
+      // FIXME
       break;
 
     case API(D3DRENDERSTATE_ZFUNC):
-      assert(b == 4);
+      assert(b == API(D3DCMP_LESSEQUAL)); // D3DCMPFUNC
       glDepthFunc(GL_LEQUAL);
       break;
 
     case API(D3DRENDERSTATE_ALPHAFUNC):
-      assert(b == 6); // D3DCMP_NOTEQUAL
+      assert(b == API(D3DCMP_NOTEQUAL)); // D3DCMPFUNC
+      // FIXME
       break;
 
     case API(D3DRENDERSTATE_DITHERENABLE):
+      assert(b == 1); // TRUE to enable dithering
       glSet(GL_DITHER, b);
       break;
 
     case API(D3DRENDERSTATE_ALPHABLENDENABLE):
+      assert((b == 0) || (b == 1)); // TRUE to enable alpha blending
       glSet(GL_BLEND, b);
       break;
 
-    //FIXME: Is this a bug? there doesn't seem to be lighting..
-    case API(D3DRENDERSTATE_SPECULARENABLE):
-      //FIXME
-      break;
-
     case API(D3DRENDERSTATE_FOGENABLE):
+      assert((b == 0) || (b == 1)); // TRUE to enable fog blending
       fogEnable = b;
       break;
+
+    case API(D3DRENDERSTATE_SPECULARENABLE):
+      assert(b == 0); // TRUE to enable specular
+      // FIXME
+      break;
+
+    case API(D3DRENDERSTATE_SUBPIXEL):
+      assert(b == 1); // TRUE to enable subpixel correction
+      // FIXME
+      break;
+
+    case API(D3DRENDERSTATE_STIPPLEDALPHA):
+      assert((b == 0) || (b == 1)); // TRUE to enable stippled alpha (RGB device only)
+      // FIXME
+      break;
+
     case API(D3DRENDERSTATE_FOGCOLOR):
+      // D3DCOLOR
       fogColor = b;
       break;
+
+    case API(D3DRENDERSTATE_FOGTABLEMODE):
+      assert((b == API(D3DFOG_NONE)) || (b == API(D3DFOG_LINEAR))); // D3DFOGMODE
+      // FIXME
+      break;
+
     case API(D3DRENDERSTATE_FOGTABLESTART):
+      // Fog start (for both vertex and pixel fog)
       fogStart = *(float*)&b;
       break;
+
     case API(D3DRENDERSTATE_FOGTABLEEND):
+      // Fog end
       fogEnd = *(float*)&b;
       break;
+
+    case API(D3DRENDERSTATE_COLORKEYENABLE):
+      assert(b == 1); // TRUE to enable source colorkeyed textures
+      // FIXME
+      break;
+
     default:
       printf("Unknown render-state %d set to 0x%08" PRIX32 " (%f)\n", a, b, *(float*)&b);
-      //FIXME: assert(false) once this runs faster
+      assert(false);
       break;
   }
   eax = 0; // FIXME: No idea what this expects to return..

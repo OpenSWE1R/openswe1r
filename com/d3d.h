@@ -344,4 +344,47 @@ enum {
   API(D3DPTBLENDCAPS_ADD) =              0x00000080L
 };
 
+// Subset of actual type
+typedef enum {
+  API(D3DANTIALIAS_NONE)          = 0
+} API(D3DANTIALIASMODE);
+
+// Subset of actual type
+typedef enum {
+  API(D3DFILL_SOLID)          = 3
+} API(D3DFILLMODE);
+
+// Subset of actual type
+typedef enum {
+  API(D3DSHADE_GOURAUD)           = 2
+} API(D3DSHADEMODE);
+
+// Subset of actual type
+typedef enum {
+  API(D3DTBLEND_MODULATE)         = 2,
+  API(D3DTBLEND_MODULATEALPHA)    = 4
+} API(D3DTEXTUREBLEND);
+
+// Subset of actual type
+typedef enum {
+  API(D3DFILTER_MIPNEAREST)       = 3
+} API(D3DTEXTUREFILTER);
+
+// Subset of actual type
+typedef enum {
+  API(D3DCULL_NONE)               = 1
+} API(D3DCULL);
+
+// Subset of actual type
+typedef enum {
+  API(D3DCMP_LESSEQUAL)           = 4,
+  API(D3DCMP_NOTEQUAL)            = 6
+} API(D3DCMPFUNC);
+
+// Subset of actual type
+typedef enum {
+  API(D3DFOG_NONE)                = 0,
+  API(D3DFOG_LINEAR)              = 3
+} API(D3DFOGMODE);
+
 #endif
