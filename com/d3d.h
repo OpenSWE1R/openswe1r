@@ -344,6 +344,10 @@ enum {
   API(D3DPTBLENDCAPS_ADD) =              0x00000080L
 };
 
+enum {
+  API(D3DPRASTERCAPS_FOGTABLE) =                 0x00000100L
+};
+
 // Subset of actual type
 typedef enum {
   API(D3DANTIALIAS_NONE)          = 0

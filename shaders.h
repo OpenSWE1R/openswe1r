@@ -10,10 +10,6 @@ static const char* VertexShader1Texture =
 "\n"
 "uniform mat4 projectionMatrix;\n"
 "\n"
-"uniform bool fogEnable;\n"
-"uniform float fogStart;\n"
-"uniform float fogEnd;\n"
-"uniform vec3 fogColor;\n"
 "uniform vec3 clipScale;\n"
 "uniform vec3 clipOffset;\n"
 "\n"
@@ -40,6 +36,10 @@ static const char* FragmentShader1Texture =
 "\n"
 "uniform sampler2D tex0;\n"
 "uniform bool alphaTest;\n"
+"uniform int fogMode;\n"
+"uniform float fogStart;\n"
+"uniform float fogEnd;\n"
+"uniform vec3 fogColor;\n"
 "\n"
 "in vec4 diffuse;\n"
 "in vec4 specular;\n"
@@ -55,6 +55,15 @@ static const char* FragmentShader1Texture =
 "  color = texture(tex0, uv0);\n"
 "  color *= diffuse;\n"
 "  if (alphaTest && !(int(round(color.a * 255.0)) != 0)) { discard; }\n"
+"  if (fogMode == 0) {\n" // D3DFOG_NONE
+"    color.rgb = color.rgb;\n"
+"  } else if (fogMode == 3) {\n" // D3DFOG_LINEAR
+"    float fogVisibility = (fogEnd - gl_FragCoord.z / gl_FragCoord.w) / (fogEnd - fogStart);\n"
+"    fogVisibility = clamp(fogVisibility, 0.0, 1.0);\n"
+"    color.rgb = mix(fogColor, color.rgb, fogVisibility);\n"
+"  } else {\n" // Unknown fog mode; Signal error by coloring primitive green
+"    color.rgb = vec3(0.0, 1.0, 0.0);\n"
+"  }\n"
 "}\n";
 
 #endif
