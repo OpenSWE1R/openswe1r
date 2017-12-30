@@ -389,6 +389,8 @@ static GLenum SetupRenderer(unsigned int primitiveType, unsigned int vertexForma
   GLsizei stride = 4 * 4 + 4 + 4 + texCount * 8;
   // Re-Volt only uses D3DFVF_XYZRHW | D3DFVF_DIFFUSE | D3DFVF_SPECULAR OR'd with either D3DFVF_TEX{0,1,2}
 
+  assert(texCount == 1);
+
   GLuint program = 0;
   glGetIntegerv(GL_CURRENT_PROGRAM, (GLint*)&program);
 
@@ -431,21 +433,6 @@ static GLenum SetupRenderer(unsigned int primitiveType, unsigned int vertexForma
 
   glUniform3fv(glGetUniformLocation(program, "clipScale"), 1, clipScale);
   glUniform3fv(glGetUniformLocation(program, "clipOffset"), 1, clipOffset);
-
-#if 1
-  // Hack to disable texture if tex0 is used - doesn't work?!
-  if (texCount == 0) {
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_SWIZZLE_R, GL_ONE);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_SWIZZLE_G, GL_ONE);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_SWIZZLE_B, GL_ONE);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_SWIZZLE_A, GL_ONE);
-  } else {
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_SWIZZLE_R, GL_RED);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_SWIZZLE_G, GL_GREEN);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_SWIZZLE_B, GL_BLUE);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_SWIZZLE_A, GL_ALPHA);
-  }
-#endif
 
   glBlendFunc(srcBlend, destBlend);
 
@@ -3026,6 +3013,7 @@ HACKY_COM_BEGIN(IDirect3DDevice3, 38)
     glBindTexture(GL_TEXTURE_2D, texture->handle);
   } else {
     glBindTexture(GL_TEXTURE_2D, 0); // FIXME: I believe this is supposed to be white?!
+    assert(false);
   }
 
   eax = 0; // FIXME: No idea what this expects to return..
