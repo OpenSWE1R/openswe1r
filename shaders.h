@@ -38,6 +38,9 @@ static const char* VertexShader1Texture =
 static const char* FragmentShader1Texture =
 "#version 330\n"
 "\n"
+"bool tex0HasAlpha = true;\n"
+"\n"
+"uniform int tex0Blend;\n"
 "uniform sampler2D tex0;\n"
 "uniform bool alphaTest;\n"
 "\n"
@@ -52,8 +55,21 @@ static const char* FragmentShader1Texture =
 #endif
 "\n"
 "void main() {\n"
-"  color = texture(tex0, uv0);\n"
-"  color *= diffuse;\n"
+"  vec4 tex = texture(tex0, uv0);\n"
+"  vec4 src = diffuse;\n"
+"  if (tex0Blend == 2) {\n" // D3DTBLEND_MODULATE
+"    color.rgb = src.rgb * tex.rgb;\n"
+"    if (tex0HasAlpha) {\n"
+"      color.a = tex.a;\n"
+"    } else {\n"
+"      color.a = src.a;\n"
+"    }\n"
+"  } else if (tex0Blend == 4) {\n" // D3DTBLEND_MODULATEALPHA
+"    color.rgb = src.rgb * tex.rgb;\n"
+"    color.a = src.a * tex.a;\n"
+"  } else {\n" // Unknown blend mode; Signals error by choosing a pink color
+"    color = vec4(1.0, 0.0, 1.0, 0.5);\n"
+"  }\n"
 "  if (alphaTest && !(int(round(color.a * 255.0)) != 0)) { discard; }\n"
 "}\n";
 

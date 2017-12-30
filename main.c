@@ -372,6 +372,7 @@ static void LoadVertices(unsigned int vertexFormat, Address address, unsigned in
   glBufferData(GL_ARRAY_BUFFER, count * stride, Memory(address), GL_STREAM_DRAW);
 }
 
+int tex0Blend;
 bool depthMask;
 GLenum destBlend;
 GLenum srcBlend;
@@ -416,6 +417,7 @@ static GLenum SetupRenderer(unsigned int primitiveType, unsigned int vertexForma
     glVertexAttribPointer(uv0In, 2, GL_FLOAT, GL_TRUE, stride, (const GLvoid*)24);
   }
 
+  glUniform1i(glGetUniformLocation(program, "tex0Blend"), tex0Blend);
   glUniform1i(glGetUniformLocation(program, "tex0"), 0);
   glUniformMatrix4fv(glGetUniformLocation(program, "projectionMatrix"), 1, GL_FALSE, projectionMatrix);
 
@@ -2865,7 +2867,7 @@ HACKY_COM_BEGIN(IDirect3DDevice3, 22)
 
     case API(D3DRENDERSTATE_TEXTUREMAPBLEND):
       assert((b == API(D3DTBLEND_MODULATE)) || (b == API(D3DTBLEND_MODULATEALPHA))); // D3DTEXTUREBLEND
-      // FIXME
+      tex0Blend = b;
       break;
 
     case API(D3DRENDERSTATE_CULLMODE):
