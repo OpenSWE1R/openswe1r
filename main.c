@@ -3034,10 +3034,45 @@ HACKY_COM_END()
 
 // IDirect3DDevice3 -> STDMETHOD(SetTextureStageState)(THIS_ DWORD,D3DTEXTURESTAGESTATETYPE,DWORD) PURE; // 40
 HACKY_COM_BEGIN(IDirect3DDevice3, 40)
+
+  uint32_t a = stack[2];
+  uint32_t b = stack[3];
+  uint32_t c = stack[4];
+
   hacky_printf("p 0x%" PRIX32 "\n", stack[1]);
-  hacky_printf("a 0x%" PRIX32 "\n", stack[2]);
-  hacky_printf("b 0x%" PRIX32 "\n", stack[3]);
-  hacky_printf("c 0x%" PRIX32 "\n", stack[4]);
+  hacky_printf("a 0x%" PRIX32 "\n", a);
+  hacky_printf("b 0x%" PRIX32 "\n", b);
+  hacky_printf("c 0x%" PRIX32 "\n", c);
+
+  assert(a == 0);
+
+  switch(b) {
+
+  case API(D3DTSS_ADDRESSU):
+    assert((c == API(D3DTADDRESS_WRAP)) || (c == API(D3DTADDRESS_CLAMP))); // D3DTEXTUREADDRESS
+    //FIXME
+    break;
+  case API(D3DTSS_ADDRESSV):
+    assert((c == API(D3DTADDRESS_WRAP)) || (c == API(D3DTADDRESS_CLAMP))); // D3DTEXTUREADDRESS
+    //FIXME
+    break;
+  case API(D3DTSS_MAGFILTER): // D3DTEXTUREMAGFILTER
+    assert(c == API(D3DTFG_LINEAR));
+    //FIXME
+    break;
+  case API(D3DTSS_MINFILTER): // D3DTEXTUREMINFILTER
+    assert(c == API(D3DTFN_LINEAR));
+    //FIXME
+    break;
+  case API(D3DTSS_MIPFILTER): // D3DTEXTUREMIPFILTER
+    assert(c == API(D3DTFP_NONE));
+    //FIXME
+    break;
+  default:
+    assert(false);
+    break;
+  }
+
   eax = 0; // FIXME: No idea what this expects to return..
   esp += 4 * 4;
 HACKY_COM_END()

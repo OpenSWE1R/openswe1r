@@ -387,4 +387,52 @@ typedef enum {
   API(D3DFOG_LINEAR)              = 3
 } API(D3DFOGMODE);
 
+typedef enum {
+  API(D3DTSS_COLOROP)        =  1, /* D3DTEXTUREOP - per-stage blending controls for color channels */
+  API(D3DTSS_COLORARG1)      =  2, /* D3DTA_* (texture arg) */
+  API(D3DTSS_COLORARG2)      =  3, /* D3DTA_* (texture arg) */
+  API(D3DTSS_ALPHAOP)        =  4, /* D3DTEXTUREOP - per-stage blending controls for alpha channel */
+  API(D3DTSS_ALPHAARG1)      =  5, /* D3DTA_* (texture arg) */
+  API(D3DTSS_ALPHAARG2)      =  6, /* D3DTA_* (texture arg) */
+  API(D3DTSS_BUMPENVMAT00)   =  7, /* D3DVALUE (bump mapping matrix) */
+  API(D3DTSS_BUMPENVMAT01)   =  8, /* D3DVALUE (bump mapping matrix) */
+  API(D3DTSS_BUMPENVMAT10)   =  9, /* D3DVALUE (bump mapping matrix) */
+  API(D3DTSS_BUMPENVMAT11)   = 10, /* D3DVALUE (bump mapping matrix) */
+  API(D3DTSS_TEXCOORDINDEX)  = 11, /* identifies which set of texture coordinates index this texture */
+  API(D3DTSS_ADDRESS)        = 12, /* D3DTEXTUREADDRESS for both coordinates */
+  API(D3DTSS_ADDRESSU)       = 13, /* D3DTEXTUREADDRESS for U coordinate */
+  API(D3DTSS_ADDRESSV)       = 14, /* D3DTEXTUREADDRESS for V coordinate */
+  API(D3DTSS_BORDERCOLOR)    = 15, /* D3DCOLOR */
+  API(D3DTSS_MAGFILTER)      = 16, /* D3DTEXTUREMAGFILTER filter to use for magnification */
+  API(D3DTSS_MINFILTER)      = 17, /* D3DTEXTUREMINFILTER filter to use for minification */
+  API(D3DTSS_MIPFILTER)      = 18, /* D3DTEXTUREMIPFILTER filter to use between mipmaps during minification */
+  API(D3DTSS_MIPMAPLODBIAS)  = 19, /* D3DVALUE Mipmap LOD bias */
+  API(D3DTSS_MAXMIPLEVEL)    = 20, /* DWORD 0..(n-1) LOD index of largest map to use (0 == largest) */
+  API(D3DTSS_MAXANISOTROPY)  = 21, /* DWORD maximum anisotropy */
+  API(D3DTSS_BUMPENVLSCALE)  = 22, /* D3DVALUE scale for bump map luminance */
+  API(D3DTSS_BUMPENVLOFFSET) = 23, /* D3DVALUE offset for bump map luminance */
+  API(D3DTSS_FORCE_DWORD)   = 0x7fffffff /* force 32-bit size enum */
+} API(D3DTEXTURESTAGESTATETYPE);
+
+// Subset of actual type
+typedef enum {
+  API(D3DTFG_LINEAR)       = 2     // linear interpolation
+} API(D3DTEXTUREMAGFILTER);
+
+// Subset of actual type
+typedef enum {
+  API(D3DTFN_LINEAR)       = 2     // linear interpolation
+} API(D3DTEXTUREMINFILTER);
+
+// Subset of actual type
+typedef enum {
+  API(D3DTFP_NONE)         = 1     // mipmapping disabled (use MAG filter)
+} API(D3DTEXTUREMIPFILTER);
+
+// Subset of actual type
+typedef enum {
+  API(D3DTADDRESS_WRAP)           = 1,
+  API(D3DTADDRESS_CLAMP)          = 3
+} API(D3DTEXTUREADDRESS);
+
 #endif
