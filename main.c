@@ -378,6 +378,7 @@ GLenum srcBlend;
 bool alphaTest;
 uint32_t fogColor; // ARGB
 bool fogEnable;
+int fogMode;
 float fogStart;
 float fogEnd;
 float projectionMatrix[16];
@@ -423,7 +424,7 @@ static GLenum SetupRenderer(unsigned int primitiveType, unsigned int vertexForma
 
   glUniform1i(glGetUniformLocation(program, "alphaTest"), alphaTest);
 
-  glUniform1i(glGetUniformLocation(program, "fogEnable"), fogEnable);
+  glUniform1i(glGetUniformLocation(program, "fogMode"), fogEnable ? fogMode : API(D3DFOG_NONE));
   glUniform1f(glGetUniformLocation(program, "fogStart"), fogStart);
   glUniform1f(glGetUniformLocation(program, "fogEnd"), fogEnd);
   glUniform3f(glGetUniformLocation(program, "fogColor"),
@@ -2437,6 +2438,7 @@ enum {
   API(D3DPTEXTURECAPS_TRANSPARENCY) =  0x00000008L
 };
 
+
     desc->dpcTriCaps.dwTextureCaps = 0;
     desc->dpcTriCaps.dwTextureCaps |= API(D3DPTEXTURECAPS_PERSPECTIVE);
     desc->dpcTriCaps.dwTextureCaps |= API(D3DPTEXTURECAPS_ALPHA);
@@ -2632,6 +2634,9 @@ HACKY_COM_BEGIN(IDirect3DDevice3, 3)
   desc->dwSize = size;
   desc->dpcTriCaps.dwTextureBlendCaps = 0;
   desc->dpcTriCaps.dwTextureBlendCaps |= API(D3DPTBLENDCAPS_MODULATEALPHA);
+
+  desc->dpcTriCaps.dwTextureBlendCaps = 0;
+  desc->dpcTriCaps.dwRasterCaps |= API(D3DPRASTERCAPS_FOGTABLE);
 
   eax = 0; // FIXME: No idea what this expects to return..
   esp += 3 * 4;
@@ -2907,7 +2912,7 @@ HACKY_COM_BEGIN(IDirect3DDevice3, 22)
 
     case API(D3DRENDERSTATE_FOGTABLEMODE):
       assert((b == API(D3DFOG_NONE)) || (b == API(D3DFOG_LINEAR))); // D3DFOGMODE
-      // FIXME
+      fogMode = b;
       break;
 
     case API(D3DRENDERSTATE_FOGTABLESTART):
