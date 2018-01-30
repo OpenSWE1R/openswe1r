@@ -226,7 +226,7 @@ void LoadSection(Exe* exe, unsigned int sectionIndex) {
 }
 
 void UnloadSection(Exe* exe, unsigned int sectionIndex) {
-  free(exe->mappedSections[sectionIndex]);
+  aligned_free(exe->mappedSections[sectionIndex]);
   exe->mappedSections[sectionIndex] = NULL;
 }
 
