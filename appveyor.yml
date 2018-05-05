@@ -4,7 +4,7 @@ clone_depth: 10
 cache:
   - C:\tools\vcpkg\installed\
 
-os: Visual Studio 2017
+os: Visual Studio 2017 Preview
 
 environment:
   # Tell MSYS2 to inherit the current directory when starting the shell
@@ -35,9 +35,6 @@ install:
           # stick to cmake 3.9.6 since on lower versions it could happen that cmake generates a Makefile that links against gcc_eh
           C:\msys64\usr\bin\bash -lc "pacman --noconfirm -U http://repo.msys2.org/mingw/x86_64/mingw-w64-x86_64-cmake-3.9.6-1-any.pkg.tar.xz 2>&1"
         } else {
-          mkdir C:\tools\vcpkg\ports\unicorn\
-          Start-FileDownload 'https://raw.githubusercontent.com/Microsoft/vcpkg/8766979444d7652b5c170b487ac39391d85b292e/ports/unicorn/CONTROL' -FileName C:\tools\vcpkg\ports\unicorn\CONTROL
-          Start-FileDownload 'https://raw.githubusercontent.com/Microsoft/vcpkg/8766979444d7652b5c170b487ac39391d85b292e/ports/unicorn/portfile.cmake' -FileName C:\tools\vcpkg\ports\unicorn\portfile.cmake
           vcpkg install unicorn sdl2 glew openal-soft enet
         }
 
