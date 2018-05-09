@@ -148,11 +148,26 @@ static char* TranslatePath(const char* path) {
     cursor++;
   }
 
-  // The CD install folder will be mapped back to our current directory.
+  // This is a patch for the original CD release.
+  // We simply map the "/gnome/data/" folder from the CD back to our current
+  // folders "/data/" folder.
   // This allows easier installation (by simply copying all files from disc)
-  if ((length >= 9) && !memcmp(newPath, "d:/gnome/", 9)) {
-    memcpy(newPath, "./", 2);
-    memmove(&newPath[2], &newPath[9], length - 9);
+  if ((length >= 14) && !memcmp(newPath, "d:/gnome/data/", 14)) {
+    memcpy(newPath, "./data/", 7);
+    memmove(&newPath[7], &newPath[14], length - 14);
+    return newPath;
+  }
+
+  // This is another CD patch for some patched games.
+  // They search CD contents directly in the CDs "/data/" path (instead of
+  // "/gnome/data/"). This allows them to just set the "CD Path" to the
+  // installation folder of the game.
+  // The most prominent version doing this is probably the GOG.com re-release
+  // from 2018.
+  if ((length >= 8) && !memcmp(newPath, "d:/data/", 8)) {
+    memcpy(newPath, "./data/", 7);
+    memmove(&newPath[7], &newPath[8], length - 8);
+    return newPath;
   }
 
   return newPath;
