@@ -1982,7 +1982,7 @@ HACKY_COM_BEGIN(IDirectDraw4, 8)
     Address descAddress = Allocate(sizeof(API(DDSURFACEDESC2)));
     API(DDSURFACEDESC2)* desc = Memory(descAddress);
     desc->ddpfPixelFormat.dwFlags = API(DDPF_RGB);
-    desc->ddpfPixelFormat.dwRGBBitCount = 24;
+    desc->ddpfPixelFormat.dwRGBBitCount = 16;
     desc->dwWidth = 640;
     desc->dwHeight = 480;
     desc->lpSurface = 0x01010101;
