@@ -16,7 +16,7 @@ The original games code is replaced by open-source code which is patched into th
 This is similar to the approach used by [OpenRCT2](https://openrct2.website/), but more emphasis is put on emulation and platform independence.
 
 Currently, not all functions are implemented in the open-source portion.
-Therefore, this project also still relies on the original games code.
+Therefore, this project also still relies on the original games binary.
 Even if not all code is patched, the game will still work cross-platform due to the API and CPU abstraction.
 
 You will still need the original game for its art assets: levels, sounds, ...
@@ -25,12 +25,6 @@ You will still need the original game for its art assets: levels, sounds, ...
 
 The goal is to eventually replace all of the original code with an open-source equivalent.
 The code is supposed to be clean, accurate and portable.
-It's not a goal to fix any bugs or modify the games behaviour.
-If you want to do such things, they should stay in a fork.
-
-An exception is platform-independence and improvements to the overall code quality.
-Some compromises are acceptable.
-Please talk to the maintainers if you have a specific case.
 
 It's possible that support for other versions (Mac / Dreamcast / N64) will be added later.
 For now, the goal is to support the x86 Windows Version of the game.
@@ -54,35 +48,21 @@ For now, the goal is to support the x86 Windows Version of the game.
 * [GLEW](http://glew.sourceforge.net/)
 * [OpenAL](https://www.openal.org/)
 
-### Building
+### Getting Started
 
-From your desired project folder, run:
-
-```
-git clone https://github.com/OpenSWE1R/openswe1r.git
-cd openswe1r
-mkdir build
-cd build
-cmake ..
-make
-```
-
-### Running
-
-The `openswe1r` binary contained in the build directory is a drop-in replacement for `swep1rcr.exe`.
-Copy it to your game folder and run it.
+Read our ["Getting Started" guide on the wiki](https://github.com/OpenSWE1R/openswe1r/wiki/Getting-Started) to learn how to build and run OpenSWE1R.
 
 ### Development
 
 Development happens on GitHub at https://github.com/OpenSWE1R/openswe1r
-You can help by reviewing other peoples Pull-Requests or sending your own after forking.
+You can help by reviewing or submitting Pull-Requests.
 
 If you want to contribute, you'll have to [sign our Contributor License Agreement (CLA)](https://cla-assistant.io/OpenSWE1R/openswe1r).
 The CLA allows us to easily switch to other [licenses the FSF classifies as Free Software License](https://www.gnu.org/licenses/license-list.html) and which are [approved by the OSI as Open Source licenses](https://opensource.org/licenses), if the need should ever arise ([more information](https://github.com/OpenSWE1R/openswe1r/pull/95)).
 
 ---
 
-**© 2017 OpenSWE1R Maintainers**
+**© 2017 - 2018 OpenSWE1R Maintainers**
 
 Source code licensed under GPLv2 or any later version.
 Binaries which link against the default Unicorn-Engine backend must be licensed under GPLv2.
