@@ -73,6 +73,8 @@ add_custom_command(
 target_sources(openswe1r PUBLIC ${CMAKE_BINARY_DIR}/app_version.h)
 target_include_directories(openswe1r PRIVATE ${CMAKE_BINARY_DIR})
 
+include(package.cmake)
+
 if(USE_VM)
   target_compile_definitions(openswe1r PUBLIC -DUC_KVM)
   target_sources(openswe1r PUBLIC
