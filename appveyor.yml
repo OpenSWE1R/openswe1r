@@ -57,3 +57,8 @@ build_script:
         } else {
           msbuild msvc_build/openswe1r.sln /maxcpucount /logger:"C:\Program Files\AppVeyor\BuildAgent\Appveyor.MSBuildLogger.dll"
         }
+  - cmake --build %BUILD_TYPE%_build --config Release --target package
+
+artifacts:
+  - path: $(BUILD_TYPE)_build/*.zip
+    name: executable
