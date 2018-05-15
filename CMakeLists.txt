@@ -65,3 +65,8 @@ target_link_libraries(openswe1r
   ${SDL2_LIBRARY}
   ${OPENAL_LIBRARY}
 )
+
+if(MSVC)
+  # Silence MSVC CRT security warnings
+  target_compile_definitions(openswe1r PRIVATE _CRT_SECURE_NO_WARNINGS)
+endif()
