@@ -62,3 +62,31 @@ build_script:
 artifacts:
   - path: $(BUILD_TYPE)_build/*.zip
     name: executable
+
+deploy:
+  - provider: GitHub
+    tag: dev-$(appveyor_build_version)
+    release: Development Release $(appveyor_build_version)
+    description: >
+      Automatically created development release $(appveyor_build_version)
+
+      Use this release to test cutting edge features and changes not
+      included in the latest offical release build.
+    prerelease: true
+    repository: TcT2k/openswe1r-unstable
+    auth_token:
+      secure: /WE6q/mVO/ll0+GqpD4PEfC2aTdDqj//FHIRC6TGFMbu5ZP26GUmafH5yD69wkRi
+    on:
+      appveyor_repo_tag: false
+      branch: deployment_test
+
+  - provider: GitHub
+    tag: $(appveyor_repo_tag_name)
+    release: Version $(appveyor_repo_tag_name)
+    description: >
+      Stable release version $(appveyor_build_version)
+    auth_token:
+      secure: /WE6q/mVO/ll0+GqpD4PEfC2aTdDqj//FHIRC6TGFMbu5ZP26GUmafH5yD69wkRi
+    on:
+      appveyor_repo_tag: true
+      branch: deployment_test
