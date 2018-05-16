@@ -3,6 +3,7 @@
 // Refer to the included LICENSE.txt file.
 
 #include "main.h"
+#include "app_version.h"
 
 #include <string.h>
 #include <stdio.h>
@@ -3943,6 +3944,7 @@ void RunX86(Exe* exe) {
 
 int main(int argc, char* argv[]) {
   printf("-- Initializing\n");
+  printf("Version: %s\n", APP_VERSION_STRING);
   InitializeEmulation();
   if (SDL_Init(SDL_INIT_VIDEO | SDL_INIT_TIMER | SDL_INIT_EVENTS) < 0) {
 		  printf("Failed to initialize SDL2!\n");
@@ -3965,7 +3967,9 @@ int main(int argc, char* argv[]) {
 	  SDL_GL_SetAttribute(SDL_GL_DEPTH_SIZE, 24);
 	  SDL_GL_SetAttribute(SDL_GL_STENCIL_SIZE, 8);
 
-    sdlWindow = SDL_CreateWindow("OpenSWE1R", SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, w, h, style);
+    char windowTitle[200];
+    snprintf(windowTitle, 200, "OpenSWE1R (Version: %s)", APP_VERSION_STRING);
+    sdlWindow = SDL_CreateWindow(windowTitle, SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, w, h, style);
 	  assert(sdlWindow != NULL);
 
 	  SDL_GLContext glcontext = SDL_GL_CreateContext(sdlWindow);

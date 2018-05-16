@@ -41,6 +41,38 @@ add_executable(openswe1r
   com/dplay.c
 )
 
+# Determine version information
+if(CMAKE_SIZEOF_VOID_P LESS 8)
+  set(APP_BUILD_CONFIG x86)
+else()
+  set(APP_BUILD_CONFIG x64)
+endif()
+if(WIN32)
+  string(APPEND APP_BUILD_CONFIG "-Windows")
+  if(MSVC)
+    string(APPEND APP_BUILD_CONFIG "-MSVC")
+  elseif(MSYS)
+    string(APPEND APP_BUILD_CONFIG "-MSYS")
+  endif()
+elseif(APPLE)
+  string(APPEND APP_BUILD_CONFIG "-macOS")
+else()
+  string(APPEND APP_BUILD_CONFIG "-Linux")
+endif()
+
+add_custom_command(
+  OUTPUT ${CMAKE_BINARY_DIR}/app_version.h
+  PRE_BUILD
+  COMMAND
+    ${CMAKE_COMMAND}
+    -D APP_VERSION_DIR=${CMAKE_BINARY_DIR}
+    -D APP_BUILD_CONFIG=${APP_BUILD_CONFIG}
+    -P cmake/create_app_version.cmake
+  WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
+)
+target_sources(openswe1r PUBLIC ${CMAKE_BINARY_DIR}/app_version.h)
+target_include_directories(openswe1r PRIVATE ${CMAKE_BINARY_DIR})
+
 if(USE_VM)
   target_compile_definitions(openswe1r PUBLIC -DUC_KVM)
   target_sources(openswe1r PUBLIC
