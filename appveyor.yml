@@ -87,6 +87,7 @@ deploy:
     on:
       appveyor_repo_tag: false
       branch: deployment_test
+      BUILD_TYPE: msvc
 
   - provider: GitHub
     tag: $(appveyor_repo_tag_name)
@@ -98,3 +99,4 @@ deploy:
     on:
       appveyor_repo_tag: true
       branch: deployment_test
+      BUILD_TYPE: msvc
