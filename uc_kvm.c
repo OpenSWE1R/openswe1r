@@ -1,4 +1,4 @@
-// Copyright 2017 OpenSWE1R Maintainers
+// Copyright 2018 OpenSWE1R Maintainers
 // Licensed under GPLv2 or any later version
 // Refer to the included LICENSE.txt file.
 
@@ -98,6 +98,45 @@ static void printRegs(uc_engine_kvm* kvm) {
        sregs.cs.base, sregs.ds.base, sregs.es.base, sregs.fs.base, sregs.gs.base, sregs.ss.base);
 }
 
+static void load_segment(struct kvm_segment* desc, uint16_t selector, uint64_t base, uint32_t limit, uint16_t ar) {
+
+  union {
+    struct {
+      uint16_t type:4;
+      uint16_t desc:1;
+      uint16_t dpl:2;
+      uint16_t present:1;
+      uint16_t limit_hi:4;
+      uint16_t available:1;
+      uint16_t long_mode:1;
+      uint16_t operand_size:1;
+      uint16_t granularity:1;
+    };
+    uint16_t raw;
+  } ar_bits;
+
+  ar_bits.raw = ar;
+
+  desc->selector = selector;
+  desc->base = base;
+  desc->limit = limit;
+  desc->type = ar_bits.type;
+  desc->present = ar_bits.present;
+  desc->dpl = ar_bits.dpl;
+  desc->db = ar_bits.operand_size;
+  desc->s = ar_bits.desc;
+  desc->l = ar_bits.long_mode;
+  desc->g = ar_bits.granularity;
+  desc->avl = ar_bits.available;
+
+  return;
+}
+
+static void load_dtable(struct kvm_dtable* dtable, uint64_t base, uint16_t limit) {
+  dtable->base = base;
+  dtable->limit = limit;
+  return;
+}
 
 uc_err uc_open(uc_arch arch, uc_mode mode, uc_engine **uc) {
   uc_engine_kvm* u = malloc(sizeof(uc_engine_kvm));
@@ -134,17 +173,17 @@ uc_err uc_open(uc_arch arch, uc_mode mode, uc_engine **uc) {
   u->vm_fd = fd;
   
   // Give intel it's required space, I think these addresses are unused.
+  // Needs room for 4 pages
+  uint64_t vm_base = 0xFFFFFFFF - 0x4000 + 1;
 #if 1
-  size_t bios_size = 0x1000;
-  uint64_t identity_base = 0xFFFFFFFF - bios_size - 0x4000 + 1; // Needs room for 5 pages
-  r = ioctl(u->vm_fd, KVM_SET_IDENTITY_MAP_ADDR, &identity_base); // 1 page
+  r = ioctl(u->vm_fd, KVM_SET_IDENTITY_MAP_ADDR, &vm_base); // 1 page
   if (r < 0) {
     fprintf(stderr, "Error assigning Identity Map space: %m\n");
     return -5;
   }
 #endif
 #if 1
-  r = ioctl(u->vm_fd, KVM_SET_TSS_ADDR, identity_base + 0x1000); // 3 pages
+  r = ioctl(u->vm_fd, KVM_SET_TSS_ADDR, vm_base + 0x1000); // 3 pages
   if (r < 0) {
     fprintf(stderr, "Error assigning TSS space: %m\n");
     return -6;
@@ -185,30 +224,9 @@ uc_err uc_open(uc_arch arch, uc_mode mode, uc_engine **uc) {
   }
   u->run = (struct kvm_run*)map;
 
-
-  // Load a small bios which boots CPU into protected mode
-  uint8_t* bios = memalign(0x100000, bios_size);
-  FILE* f = fopen("uc_kvm_loader", "rb");
-  assert(f != NULL);
-  fread(bios, 1, bios_size, f);
-  fclose(f);
-  struct kvm_userspace_memory_region memory = {
-    .memory_size = bios_size,
-    .guest_phys_addr = 0xFFFFFFFF - bios_size + 1,
-    .userspace_addr = (uintptr_t)bios,
-    .flags = 0, //FIXME: Look at perms?
-    .slot = u->mem_slots++,
-  };
-  
-  r = ioctl(u->vm_fd, KVM_SET_USER_MEMORY_REGION, &memory);
-  if (r == -1) {
-    fprintf(stderr, "Error mapping memory: %m\n");
-    assert(false);
-    return -1;
-  }
-
   // Prepare CPU State
-   struct kvm_regs regs = { 0 };
+  struct kvm_regs regs = { 0 };
+  r = ioctl(u->vcpu_fd, KVM_GET_REGS, &regs);
 
   regs.rax = 0;
   regs.rbx = 0;
@@ -220,16 +238,22 @@ uc_err uc_open(uc_arch arch, uc_mode mode, uc_engine **uc) {
   regs.rbp = 0;
   // FIXME: regs.r8 - regs.r15 ?
 
-  regs.rflags = 2;
-  regs.rip = 0xFFF0;
-  r = ioctl(u->vcpu_fd, KVM_SET_REGS, &regs);
+  struct kvm_sregs sregs = { 0 };
+  r = ioctl(u->vcpu_fd, KVM_GET_SREGS, &sregs);
 
-  // Run CPU until it is ready
-  printRegs(u);
-  ioctl(u->vcpu_fd, KVM_RUN, 0);
-  printf("exit reason: %d\n", u->run->exit_reason);
-  printRegs(u);
-  assert(u->run->exit_reason == KVM_EXIT_IO);
+  sregs.cr0 |= 1; // Enable protected mode
+  load_dtable(&sregs.gdt, 0xFFFFF000, 0x18);
+  load_segment(&sregs.cs, 0x08, 0x00000000, 0xFFFFFFFF, 0xCF9B);
+  load_segment(&sregs.ds, 0x10, 0x00000000, 0xFFFFFFFF, 0xCF93);
+  load_segment(&sregs.es, 0x10, 0x00000000, 0xFFFFFFFF, 0xCF93);
+  load_segment(&sregs.ss, 0x10, 0x00000000, 0xFFFFFFFF, 0xCF93);
+
+  regs.rflags = 2;
+
+
+  r = ioctl(u->vcpu_fd, KVM_SET_REGS, &regs);
+  r = ioctl(u->vcpu_fd, KVM_SET_SREGS, &sregs);
+
 
   // Enable signals
   sigset_t set;
