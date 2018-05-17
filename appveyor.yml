@@ -1,6 +1,8 @@
 # shallow clone
 clone_depth: 10
 
+version: '{build}'
+
 cache:
   - C:\tools\vcpkg\installed\
 
