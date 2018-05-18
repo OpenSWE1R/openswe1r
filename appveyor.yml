@@ -81,12 +81,12 @@ deploy:
       Use this release to test cutting edge features and changes not
       included in the latest offical release build.
     prerelease: true
-    repository: TcT2k/openswe1r-unstable
+    repository: OpenSWE1R/openswe1r-unstable
     auth_token:
-      secure: /WE6q/mVO/ll0+GqpD4PEfC2aTdDqj//FHIRC6TGFMbu5ZP26GUmafH5yD69wkRi
+      secure: dt7LXTsIxqTkmXC0FdK7k7K23ifilaIvb0wFXCVDhrNk6u6myk6I0Zgz/FwQ1nFf
     on:
       appveyor_repo_tag: false
-      branch: deployment_test
+      branch: master
       BUILD_TYPE: msvc
 
   - provider: GitHub
@@ -95,8 +95,8 @@ deploy:
     description: >
       Stable release version $(appveyor_build_version)
     auth_token:
-      secure: /WE6q/mVO/ll0+GqpD4PEfC2aTdDqj//FHIRC6TGFMbu5ZP26GUmafH5yD69wkRi
+      secure: dt7LXTsIxqTkmXC0FdK7k7K23ifilaIvb0wFXCVDhrNk6u6myk6I0Zgz/FwQ1nFf
     on:
       appveyor_repo_tag: true
-      branch: deployment_test
+      branch: master
       BUILD_TYPE: msvc
