@@ -135,7 +135,7 @@ Address CreateInterface(const char* name, unsigned int slotCount) {
 Exe* exe; //FIXME: This is hack. I feel this shouldn't be exposed aside from the loader
 const char* exeName = "swep1rcr.exe";
 
-static char* TranslatePath(const char* path) {
+static char* TranslatePath(const char* path, bool* is_cd) {
   size_t length = strlen(path) + 1;
   char* newPath = malloc(length);
   char* cursor = strcpy(newPath, path);
@@ -148,26 +148,45 @@ static char* TranslatePath(const char* path) {
     cursor++;
   }
 
-  // This is a patch for the original CD release.
-  // We simply map the "/gnome/data/" folder from the CD back to our current
-  // folders "/data/" folder.
-  // This allows easier installation (by simply copying all files from disc)
-  if ((length >= 14) && !memcmp(newPath, "d:/gnome/data/", 14)) {
-    memcpy(newPath, "./data/", 7);
-    memmove(&newPath[7], &newPath[14], length - 14);
-    return newPath;
-  }
+  // Check if this is a CD access
+  if ((length >= 3) && !memcmp(newPath, "d:/", 3)) {
 
-  // This is another CD patch for some patched games.
-  // They search CD contents directly in the CDs "/data/" path (instead of
-  // "/gnome/data/"). This allows them to just set the "CD Path" to the
-  // installation folder of the game.
-  // The most prominent version doing this is probably the GOG.com re-release
-  // from 2018.
-  if ((length >= 8) && !memcmp(newPath, "d:/data/", 8)) {
-    memcpy(newPath, "./data/", 7);
-    memmove(&newPath[7], &newPath[8], length - 8);
-    return newPath;
+    // Normally, the game stores the data in the "/gnome/" folder on the CD.
+    // All files from that folder will be in the games root folder after
+    // installation.
+    //
+    // However, some games will have a patched CD checked to directly access
+    // data in the CD root folder.
+    // This allows to set the "CD Path" to the installation folder of the game
+    // to run the game without CD.
+    // The most prominent version doing this is probably the GOG.com re-release
+    // from 2018.
+    //
+    // To support both of these variations, we redirect "/gnome/" to the CD root
+    // folder on our own. Regardless of what the game does.
+    // This will do nothing on patched games, but will patch the unpatched one.
+    // This causes all versions to behave like the patched one.
+
+    if ((length >= 9) && !memcmp(newPath, "d:/gnome/", 9)) {
+      memmove(&newPath[3], &newPath[9], length - 9);
+    }
+
+    // We map the CD root folder back to our game root folder.
+    memcpy(newPath, "./", 2);
+    memmove(&newPath[2], &newPath[3], length - 3);
+
+    // Mark this as a CD access
+    if (is_cd != NULL) {
+      *is_cd = true;
+    }
+
+  } else {
+
+    // This is not a CD access, mark it accordingly
+    if (is_cd != NULL) {
+      *is_cd = false;
+    }
+
   }
 
   return newPath;
@@ -895,16 +914,30 @@ HACKY_IMPORT_BEGIN(CreateFileA)
   hacky_printf("dwCreationDisposition 0x%" PRIX32 "\n", stack[5]);
   hacky_printf("dwFlagsAndAttributes 0x%" PRIX32 "\n", stack[6]);
   hacky_printf("hTemplateFile 0x%" PRIX32 "\n", stack[7]);
-  char* path = TranslatePath(lpFileName);
-  FILE* f = fopen(path, stack[2] & 0x40000000 ? (stack[5] == 4 ? "ab" : "wb") : "rb");
-  if (f != NULL) {
-    printf("File handle is 0x%" PRIX32 "\n", handle_index);
-    handles[handle_index] = f;
-    eax = handle_index;
-    handle_index++;
-  } else {
-    printf("Failed to open file ('%s' as '%s')\n", lpFileName, path);
+
+  bool is_cd;
+  char* path = TranslatePath(lpFileName, &is_cd);
+
+  // Get desired access type
+  bool is_write = stack[2] & 0x40000000;
+
+  // Disallow writing to CD
+  if (is_cd && is_write) {
+    printf("Denied to open file ('%s' as '%s')\n", lpFileName, path);
     eax = 0xFFFFFFFF;
+  } else {
+
+    FILE* f = fopen(path, is_write ? (stack[5] == 4 ? "ab" : "wb") : "rb");
+    if (f != NULL) {
+      printf("File handle is 0x%" PRIX32 "\n", handle_index);
+      handles[handle_index] = f;
+      eax = handle_index;
+      handle_index++;
+    } else {
+      printf("Failed to open file ('%s' as '%s')\n", lpFileName, path);
+      eax = 0xFFFFFFFF;
+    }
+
   }
   free(path);
   esp += 7 * 4;
