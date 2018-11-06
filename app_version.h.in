@@ -1,0 +1,7 @@
+// Copyright 2017 OpenSWE1R Maintainers
+// Licensed under GPLv2 or any later version
+// Refer to the included LICENSE.txt file.
+
+// THIS FILE IS CREATE AUTOMATICALLY DO NOT EDIT
+
+#define APP_VERSION_STRING "@APP_VERSION@"

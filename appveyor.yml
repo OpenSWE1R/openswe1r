@@ -1,8 +1,11 @@
 # shallow clone
 clone_depth: 10
 
+version: '{build}'
+
 cache:
   - C:\tools\vcpkg\installed\
+  - C:\projects\unicorn\mingw-w64-x86_64-unicorn-1.0.1-1-any.pkg.tar.xz
 
 os: Visual Studio 2017 Preview
 
@@ -27,11 +30,16 @@ install:
           # redirect err to null to prevent warnings from becoming errors
           C:\msys64\usr\bin\bash -lc "pacman --noconfirm -S mingw-w64-x86_64-SDL2 mingw-w64-x86_64-glew mingw-w64-x86_64-openal mingw-w64-x86_64-enet 2>&1"
           # install unicorn from source
-          mkdir unicorn
-          cd unicorn
-          Start-FileDownload 'https://raw.githubusercontent.com/Alexpux/MINGW-packages/master/mingw-w64-unicorn/PKGBUILD'
-          C:\msys64\usr\bin\bash -lc "MINGW_INSTALLS=mingw64 makepkg-mingw -sLf -i --noconfirm  2>&1"
-          cd ..
+          if (Test-Path C:\projects\unicorn\mingw-w64-x86_64-unicorn-1.0.1-1-any.pkg.tar.xz) {
+            C:\msys64\usr\bin\bash -lc "pacman --noconfirm -U C:/projects/unicorn/mingw-w64-x86_64-unicorn-1.0.1-1-any.pkg.tar.xz 2>&1"
+          } else {
+            pushd C:\projects
+            mkdir unicorn
+            cd unicorn
+            Start-FileDownload 'https://raw.githubusercontent.com/Alexpux/MINGW-packages/master/mingw-w64-unicorn/PKGBUILD'
+            C:\msys64\usr\bin\bash -lc "MINGW_INSTALLS=mingw64 makepkg-mingw -sLf -i --noconfirm  2>&1"
+            popd
+          }
           # stick to cmake 3.9.6 since on lower versions it could happen that cmake generates a Makefile that links against gcc_eh
           C:\msys64\usr\bin\bash -lc "pacman --noconfirm -U http://repo.msys2.org/mingw/x86_64/mingw-w64-x86_64-cmake-3.9.6-1-any.pkg.tar.xz 2>&1"
         } else {
@@ -39,8 +47,8 @@ install:
         }
 
 before_build:
-  - mkdir %BUILD_TYPE%_build
-  - cd %BUILD_TYPE%_build
+  - mkdir build
+  - cd build
   - ps: |
         if ($env:BUILD_TYPE -eq 'mingw') {
           C:\msys64\usr\bin\bash.exe -lc "cmake -G 'MSYS Makefiles' -DCMAKE_BUILD_TYPE=Release .. 2>&1"
@@ -53,7 +61,42 @@ before_build:
 build_script:
   - ps: |
         if ($env:BUILD_TYPE -eq 'mingw') {
-          C:\msys64\usr\bin\bash.exe -lc 'mingw32-make -j4 -C mingw_build/ 2>&1'
+          C:\msys64\usr\bin\bash.exe -lc 'mingw32-make -j4 -C build/ 2>&1'
         } else {
-          msbuild msvc_build/openswe1r.sln /maxcpucount /logger:"C:\Program Files\AppVeyor\BuildAgent\Appveyor.MSBuildLogger.dll"
+          msbuild build/openswe1r.sln /maxcpucount /logger:"C:\Program Files\AppVeyor\BuildAgent\Appveyor.MSBuildLogger.dll"
         }
+  - cmake --build build --config Release --target package
+
+artifacts:
+  - path: build/*.zip
+    name: executable
+
+deploy:
+  - provider: GitHub
+    tag: dev-$(appveyor_build_version)
+    release: Development Release $(appveyor_build_version)
+    description: >
+      Automatically created development release $(appveyor_build_version)
+
+      Use this release to test cutting edge features and changes not
+      included in the latest offical release build.
+    prerelease: true
+    repository: OpenSWE1R/openswe1r-unstable
+    auth_token:
+      secure: dt7LXTsIxqTkmXC0FdK7k7K23ifilaIvb0wFXCVDhrNk6u6myk6I0Zgz/FwQ1nFf
+    on:
+      appveyor_repo_tag: false
+      branch: master
+      BUILD_TYPE: msvc
+
+  - provider: GitHub
+    tag: $(appveyor_repo_tag_name)
+    release: Version $(appveyor_repo_tag_name)
+    description: >
+      Stable release version $(appveyor_build_version)
+    auth_token:
+      secure: dt7LXTsIxqTkmXC0FdK7k7K23ifilaIvb0wFXCVDhrNk6u6myk6I0Zgz/FwQ1nFf
+    on:
+      appveyor_repo_tag: true
+      branch: master
+      BUILD_TYPE: msvc
