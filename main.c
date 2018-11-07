@@ -3862,7 +3862,7 @@ Exe* LoadExe(const char* path) {
         } else {
           API(IMAGE_IMPORT_BY_NAME)* importByName = Memory(exe->peHeader.imageBase + importByNameAddress);
           printf("  0x%" PRIX32 ": 0x%" PRIX16 " '%s' ..", thunkAddress, importByName->hint, importByName->name);
-          label = importByName->name;
+          label = strdup(importByName->name);
         }
 
         //FIXME: This is a hack.. these calls were WAY too slow because UC is really bad at switching contexts
@@ -3959,11 +3959,14 @@ void RunX86(Exe* exe) {
   // Map the important exe parts into emu memory
   for(unsigned int sectionIndex = 0; sectionIndex < exe->coffHeader.numberOfSections; sectionIndex++) {
     PeSection* section = &exe->sections[sectionIndex];
-    void* mappedSection = (void*)exe->mappedSections[sectionIndex];
-    if (mappedSection != NULL) {
+    void** mappedSection = (void**)&exe->mappedSections[sectionIndex];
+    if (*mappedSection != NULL) {
       uint32_t base = exe->peHeader.imageBase + section->virtualAddress;
       printf("Mapping 0x%" PRIX32 " - 0x%" PRIX32 "\n", base, base + section->virtualSize - 1);
-      MapMemory(mappedSection, base, AlignUp(section->virtualSize, exe->peHeader.sectionAlignment), true, true, true);
+      void* relocatedMappedSection = MapMemory(base, AlignUp(section->virtualSize, exe->peHeader.sectionAlignment), true, true, true);
+      memcpy(relocatedMappedSection, *mappedSection, section->virtualSize);
+      aligned_free(*mappedSection);
+      *mappedSection = relocatedMappedSection;
     }
   }
 
