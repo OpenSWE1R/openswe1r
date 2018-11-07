@@ -222,8 +222,8 @@ void StackTrace(uint32_t base, unsigned int frames, unsigned int arguments) {
 // FIXME: Move to exe functions
 void RelocateSection(Exe* exe, unsigned int sectionIndex) { 
   // Relocate
-	//reloc 21589 offset    0 [301d3017] ABSOLUTE
-	//reloc 21590 offset   11 [301d3028] HIGHLOW
+  //reloc 21589 offset    0 [301d3017] ABSOLUTE
+  //reloc 21590 offset   11 [301d3028] HIGHLOW
 #if 0
   switch(relocation->type)
     case RelocationAbsolute:
@@ -1069,12 +1069,12 @@ HACKY_IMPORT_BEGIN(PeekMessageA)
 
   //FIXME: Translate SDL events to windows events
   SDL_Event event;
-	while (SDL_PollEvent(&event)) {
-		switch (event.type) {
-		case SDL_QUIT:
+  while (SDL_PollEvent(&event)) {
+    switch (event.type) {
+    case SDL_QUIT:
       printf("\n\nSDL Exit!\n");
       exit(EXIT_FAILURE);
-			break;
+      break;
     }
   }
 
@@ -2054,7 +2054,7 @@ HACKY_COM_BEGIN(IDirectDraw4, 11)
 //FIXME: !!!!!!!!! Set some caps?!
 
 // (+8) & 0x80000 ? 0 : 1; // #define DDCAPS2_CANRENDERWINDOWED 0x00080000
-// (+4) & 1 ? 1 : 0; // #define DDCAPS_3D	0x00000001
+// (+4) & 1 ? 1 : 0; // #define DDCAPS_3D 0x00000001
 // (+64)
 // (+60)
 
@@ -3135,7 +3135,7 @@ HACKY_COM_END()
 
 // IDirect3DTexture2
 
-// IDirect3DTexture2 -> STDMETHOD(QueryInterface)				(THIS_ REFIID, LPVOID FAR *) PURE; // 0
+// IDirect3DTexture2 -> STDMETHOD(QueryInterface)       (THIS_ REFIID, LPVOID FAR *) PURE; // 0
 HACKY_COM_BEGIN(IDirect3DTexture2, 0)
   hacky_printf("QueryInterface\n");
   hacky_printf("p 0x%" PRIX32 "\n", stack[1]);
@@ -3986,7 +3986,7 @@ int main(int argc, char* argv[]) {
   printf("Version: %s\n", APP_VERSION_STRING);
   InitializeEmulation();
   if (SDL_Init(SDL_INIT_VIDEO | SDL_INIT_TIMER | SDL_INIT_EVENTS) < 0) {
-		  printf("Failed to initialize SDL2!\n");
+    printf("Failed to initialize SDL2!\n");
   }
   printf("-- Creating window\n");
   {
@@ -3994,25 +3994,25 @@ int main(int argc, char* argv[]) {
     int w = 640;
     int h = 480;
 
-  	Uint32 style = SDL_WINDOW_OPENGL | SDL_WINDOW_HIDDEN;
-	  if (fullscreen) {
-		  style |= SDL_WINDOW_FULLSCREEN;
+    Uint32 style = SDL_WINDOW_OPENGL | SDL_WINDOW_HIDDEN;
+    if (fullscreen) {
+      style |= SDL_WINDOW_FULLSCREEN;
     }
 
-	  SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK, SDL_GL_CONTEXT_PROFILE_CORE);
-	  SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 3);
-	  SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 3);
-	  SDL_GL_SetAttribute(SDL_GL_DOUBLEBUFFER, 1);
-	  SDL_GL_SetAttribute(SDL_GL_DEPTH_SIZE, 24);
-	  SDL_GL_SetAttribute(SDL_GL_STENCIL_SIZE, 8);
+    SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK, SDL_GL_CONTEXT_PROFILE_CORE);
+    SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 3);
+    SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 3);
+    SDL_GL_SetAttribute(SDL_GL_DOUBLEBUFFER, 1);
+    SDL_GL_SetAttribute(SDL_GL_DEPTH_SIZE, 24);
+    SDL_GL_SetAttribute(SDL_GL_STENCIL_SIZE, 8);
 
     char windowTitle[200];
     snprintf(windowTitle, 200, "OpenSWE1R (Version: %s)", APP_VERSION_STRING);
     sdlWindow = SDL_CreateWindow(windowTitle, SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, w, h, style);
-	  assert(sdlWindow != NULL);
+    assert(sdlWindow != NULL);
 
-	  SDL_GLContext glcontext = SDL_GL_CreateContext(sdlWindow);
-	  assert(glcontext != NULL);
+    SDL_GLContext glcontext = SDL_GL_CreateContext(sdlWindow);
+    assert(glcontext != NULL);
 
     glewExperimental = GL_TRUE;
     GLenum err = glewInit();
@@ -4035,7 +4035,7 @@ int main(int argc, char* argv[]) {
     glCullFace(GL_FRONT);    
 
 
-  	SDL_ShowWindow(sdlWindow);
+    SDL_ShowWindow(sdlWindow);
   }
   printf("-- Compiling shaders\n");
   GLuint shader1Texture = 0;

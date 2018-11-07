@@ -41,22 +41,22 @@ void PrintShaderProgramLog(GLuint program) {
 }
 
 GLuint CreateShaderProgram(GLuint vertexShader, GLuint fragmentShader) {
-	GLuint program = glCreateProgram();
-	glAttachShader(program, vertexShader);
-	glAttachShader(program, fragmentShader);
+  GLuint program = glCreateProgram();
+  glAttachShader(program, vertexShader);
+  glAttachShader(program, fragmentShader);
   return program;
 }
 
 bool LinkShaderProgram(GLuint program) {
-	glLinkProgram(program);
+  glLinkProgram(program);
   GLint isLinked = 0;
   glGetProgramiv(program, GL_LINK_STATUS, &isLinked);
   return isLinked != GL_FALSE;
 }
 
 GLuint CreateShader(const char* source, GLuint type) {
-	GLuint shader = glCreateShader(type);
-	glShaderSource(shader, 1, &source,NULL);
-	glCompileShader(shader);
+  GLuint shader = glCreateShader(type);
+  glShaderSource(shader, 1, &source,NULL);
+  glCompileShader(shader);
   return shader;
 }

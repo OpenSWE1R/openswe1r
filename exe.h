@@ -79,16 +79,16 @@ typedef struct {
 // PE sections
 
 typedef struct {
-	uint32_t originalFirstThunk;
-	uint32_t timeDateStamp;
-	uint32_t forwarderChain;
-	uint32_t name;
-	uint32_t firstThunk;
+  uint32_t originalFirstThunk;
+  uint32_t timeDateStamp;
+  uint32_t forwarderChain;
+  uint32_t name;
+  uint32_t firstThunk;
 } API(IMAGE_IMPORT_DESCRIPTOR);
 
 typedef struct  {
-	uint16_t hint;
-	char name[];
+  uint16_t hint;
+  char name[];
 } API(IMAGE_IMPORT_BY_NAME);
 
 typedef struct {
