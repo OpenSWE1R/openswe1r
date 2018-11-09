@@ -599,6 +599,9 @@ HACKY_IMPORT_END()
 
 HACKY_IMPORT_BEGIN(GetStartupInfoA)
   hacky_printf("lpStartupInfo 0x%" PRIX32 "\n", stack[1]);
+
+  memset(Memory(stack[1]), 0x00, 68);
+
   esp += 1 * 4;
 HACKY_IMPORT_END()
 
