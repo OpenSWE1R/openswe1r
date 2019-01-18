@@ -94,7 +94,7 @@ uint32_t tls[1000] = {0};
 static void UnknownImport(void* uc, Address address, void* user_data);
 Address CreateInterface(const char* name, unsigned int slotCount) {
   //FIXME: Unsure about most terminology / inner workings here
-  Address interfaceAddress = Allocate(100); //FIXME: Size of object
+  Address interfaceAddress = Allocate(1000); //FIXME: Size of object
   Address vtableAddress = Allocate(4 * slotCount);
   uint32_t* vtable = (uint32_t*)Memory(vtableAddress);
   for(unsigned int i = 0; i < slotCount; i++) {
@@ -599,6 +599,9 @@ HACKY_IMPORT_END()
 
 HACKY_IMPORT_BEGIN(GetStartupInfoA)
   hacky_printf("lpStartupInfo 0x%" PRIX32 "\n", stack[1]);
+
+  memset(Memory(stack[1]), 0x00, 68);
+
   esp += 1 * 4;
 HACKY_IMPORT_END()
 
