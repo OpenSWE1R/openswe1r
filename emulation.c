@@ -19,6 +19,8 @@
 #include "emulation.h"
 #include "exe.h"
 
+#include "alloc.h"
+
 //FIXME: These are hacks (register when mapping instead!)!
 extern Exe* exe;
 uint8_t* stack = NULL;
@@ -287,27 +289,27 @@ void* MapMemory(uint32_t address, uint32_t size, bool read, bool write, bool exe
   return memory;
 }
 
+static Allocator* memoryAllocator = NULL;
+static unsigned int memoryBlockSize = 0x1000;
+
 Address Allocate(Size size) {
-  static uint32_t address = HEAP_ADDRESS;
-  uint32_t ret = address;
-  address += size;
+  if (memoryAllocator == NULL) {
+    memoryAllocator = alloc_create(heapSize, memoryBlockSize);
+  }
+  unsigned int offset = alloc_allocate(memoryAllocator, size);
+  Address ret = heapAddress + offset;
+
 #if 1
   // Debug memset to detect memory errors
   memset(Memory(ret), 0xDD, size);
-#endif
-  //FIXME: Proper allocator
-
-#if 1
-//FIXME: This is a hack to fix alignment + to avoid too small allocations
-address += 0x1000;
-address &= 0xFFFFF000;
 #endif
 
   return ret;
 }
 
 void Free(Address address) {
-  //FIXME!
+  unsigned int offset = address - heapAddress;
+  alloc_free(memoryAllocator, offset);
 }
 
 void* Memory(uint32_t address) {
