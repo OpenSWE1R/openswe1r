@@ -1066,7 +1066,7 @@ HACKY_IMPORT_BEGIN(DirectDrawCreate)
   hacky_printf("lpGUID 0x%" PRIX32 "\n", stack[1]);
   hacky_printf("lplpDD 0x%" PRIX32 "\n", stack[2]);
   hacky_printf("pUnkOuter 0x%" PRIX32 "\n", stack[3]);
-  *(Address*)Memory(stack[2]) = CreateInterface("IDirectDraw4", 200);
+  *(Address*)Memory(stack[2]) = CreateInterface("IDirectDraw4", 30);
   eax = 0; // DD_OK
   esp += 3 * 4;
 HACKY_IMPORT_END()
@@ -1917,7 +1917,7 @@ HACKY_COM_BEGIN(IDirectDraw4, 0)
     assert(false);
   }
 
-  *(Address*)Memory(stack[3]) = CreateInterface(name, 200);
+  *(Address*)Memory(stack[3]) = CreateInterface(name, 30);
   eax = 0; // FIXME: No idea what this expects to return..
   esp += 3 * 4;
 HACKY_COM_END()
@@ -1936,7 +1936,7 @@ HACKY_COM_BEGIN(IDirectDraw4, 5)
   hacky_printf("b 0x%" PRIX32 "\n", stack[3]);
   hacky_printf("c 0x%" PRIX32 "\n", stack[4]);
   hacky_printf("d 0x%" PRIX32 "\n", stack[5]);
-  *(Address*)Memory(stack[4]) = CreateInterface("IDirectDrawPalette", 200);
+  *(Address*)Memory(stack[4]) = CreateInterface("IDirectDrawPalette", 10);
   eax = 0; // FIXME: No idea what this expects to return..
   esp += 5 * 4;
 HACKY_COM_END()
@@ -1989,7 +1989,7 @@ enum {
     printf("GL handle is %d\n", texture->handle);
   } else {
     //FIXME: only added to catch bugs, null pointer should work
-    surface->texture = CreateInterface("invalid", 200);
+    surface->texture = CreateInterface("invalid", 50);
 
     //FIXME: WTF is this shit?!
     API(Direct3DTexture2)* texture = (API(Direct3DTexture2)*)Memory(surface->texture);
@@ -3546,7 +3546,7 @@ HACKY_COM_BEGIN(IDirectInputA, 3)
   hacky_printf("rguid 0x%" PRIX32 "\n", stack[2]);
   hacky_printf("lpIDD 0x%" PRIX32 "\n", stack[3]);
   hacky_printf("pUnkOuter 0x%" PRIX32 "\n", stack[4]);
-  *(Address*)Memory(stack[3]) = CreateInterface("IDirectInputDeviceA", 200);
+  *(Address*)Memory(stack[3]) = CreateInterface("IDirectInputDeviceA", 20);
   eax = 0; // HRESULT -> non-negative means success
   esp += 4 * 4;
 HACKY_COM_END()
