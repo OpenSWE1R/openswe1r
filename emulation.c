@@ -278,6 +278,7 @@ void* MapMemory(uint32_t address, uint32_t size, bool read, bool write, bool exe
   uc_err err;
   assert(size % ucAlignment == 0);
   void* memory = aligned_malloc(ucAlignment, size);
+  memset(memory, 0x00, size);
   err = uc_mem_map_ptr(uc, address, size, UC_PROT_ALL, memory);
   if (err) {
     printf("Failed on uc_mem_map_ptr() with error returned %u: %s\n", err, uc_strerror(err));
