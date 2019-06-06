@@ -972,6 +972,11 @@ HACKY_IMPORT_BEGIN(HeapFree)
   hacky_printf("hHeap 0x%" PRIX32 "\n", stack[1]);
   hacky_printf("dwFlags 0x%" PRIX32 "\n", stack[2]);
   hacky_printf("lpMem 0x%" PRIX32 "\n", stack[3]);
+
+  assert(stack[2] == 0x0);
+
+  Free(stack[3]);
+
   eax = 1; // nonzero if succeeds
   esp += 3 * 4;
 HACKY_IMPORT_END()
