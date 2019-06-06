@@ -273,15 +273,17 @@ void DumpProfilingHeat(const char* path) {
   }
 }
 
-void MapMemory(void* memory, uint32_t address, uint32_t size, bool read, bool write, bool execute) {
+void* MapMemory(uint32_t address, uint32_t size, bool read, bool write, bool execute) {
   //FIXME: Permissions!
   uc_err err;
   assert(size % ucAlignment == 0);
+  void* memory = aligned_malloc(ucAlignment, size);
   err = uc_mem_map_ptr(uc, address, size, UC_PROT_ALL, memory);
   if (err) {
     printf("Failed on uc_mem_map_ptr() with error returned %u: %s\n", err, uc_strerror(err));
   }
   //FIXME: Add to mapped memory list
+  return memory;
 }
 
 Address Allocate(Size size) {
@@ -428,7 +430,7 @@ void InitializeEmulation() {
 
 #ifndef UC_KVM
   // Setup segments
-  SegmentDescriptor* gdtEntries = (SegmentDescriptor*)aligned_malloc(ucAlignment, AlignUp(gdtSize, ucAlignment));
+  SegmentDescriptor* gdtEntries = (SegmentDescriptor*)MapMemory(gdtAddress, AlignUp(gdtSize, ucAlignment), true, true, false);
   memset(gdtEntries, 0x00, gdtSize);
 
   gdtEntries[14] = CreateDescriptor(0x00000000, 0xFFFFF000, true);  // CS
@@ -438,8 +440,6 @@ void InitializeEmulation() {
   //FIXME: Remove? We never switch to ring 0 anyway (Came from UC sample code)
   gdtEntries[17] = CreateDescriptor(0x00000000, 0xFFFFF000, false);  // Ring 0
   gdtEntries[17].dpl = 0;  //set descriptor privilege level
-
-  err = uc_mem_map_ptr(uc, gdtAddress, AlignUp(gdtSize, ucAlignment), UC_PROT_WRITE | UC_PROT_READ, gdtEntries);
 
   uc_x86_mmr gdtr;
   gdtr.base = gdtAddress;  
@@ -478,14 +478,12 @@ void InitializeEmulation() {
 #endif
 
   // Map and set TLS (not exposed via flat memory)
-  uint8_t* tls = aligned_malloc(ucAlignment, tlsSize);
+  uint8_t* tls = MapMemory(tlsAddress, tlsSize, true, true, false);
   memset(tls, 0xBB, tlsSize);
-  err = uc_mem_map_ptr(uc, tlsAddress, tlsSize, UC_PROT_WRITE | UC_PROT_READ, tls);
 
   // Allocate a heap
-  heap = aligned_malloc(ucAlignment, heapSize);
+  heap = MapMemory(heapAddress, heapSize, true, true, true);
   memset(heap, 0xAA, heapSize);
-  MapMemory(heap, heapAddress, heapSize, true, true, true);
 }
 
 void SetTracing(bool enabled) {
@@ -548,8 +546,7 @@ unsigned int CreateEmulatedThread(uint32_t eip) {
   // Map and set stack
   //FIXME: Use requested size
   if (stack == NULL) {
-    stack = aligned_malloc(ucAlignment, stackSize);
-    MapMemory(stack, stackAddress, stackSize, true, true, false);
+    stack = MapMemory(stackAddress, stackSize, true, true, false);
   }
   static int threadId = 0;
   uint32_t esp = stackAddress + stackSize / 2 + 256 * 1024 * threadId++; // 256 kiB per late thread

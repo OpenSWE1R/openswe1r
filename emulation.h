@@ -25,7 +25,7 @@ void RunEmulation();
 
 // Memory API
 
-void MapMemory(void* data, uint32_t address, uint32_t size, bool read, bool write, bool execute);
+void* MapMemory(uint32_t address, uint32_t size, bool read, bool write, bool execute);
 Address Allocate(Size size);
 void Free(Address address);
 void* Memory(uint32_t address);
