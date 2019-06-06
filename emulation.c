@@ -555,6 +555,7 @@ unsigned int CreateEmulatedThread(uint32_t eip) {
 
   threads = realloc(threads, ++threadCount * sizeof(ThreadContext));
   ThreadContext* ctx = &threads[threadCount - 1];
+  memset(ctx, 0x00, sizeof(ThreadContext));
   TransferContext(ctx, false); //FIXME: Find safe defaults instead?!
   ctx->eip = eip;
   ctx->esp = esp;
