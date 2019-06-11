@@ -61,7 +61,8 @@ else()
 endif()
 
 add_custom_command(
-  OUTPUT ${CMAKE_BINARY_DIR}/app_version.h
+  OUTPUT ${CMAKE_BINARY_DIR}/.generated
+         ${CMAKE_BINARY_DIR}/app_version.h
   PRE_BUILD
   COMMAND
     ${CMAKE_COMMAND}
