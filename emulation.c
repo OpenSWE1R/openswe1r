@@ -278,6 +278,7 @@ void* MapMemory(uint32_t address, uint32_t size, bool read, bool write, bool exe
   uc_err err;
   assert(size % ucAlignment == 0);
   void* memory = aligned_malloc(ucAlignment, size);
+  memset(memory, 0x00, size);
   err = uc_mem_map_ptr(uc, address, size, UC_PROT_ALL, memory);
   if (err) {
     printf("Failed on uc_mem_map_ptr() with error returned %u: %s\n", err, uc_strerror(err));
@@ -554,6 +555,7 @@ unsigned int CreateEmulatedThread(uint32_t eip) {
 
   threads = realloc(threads, ++threadCount * sizeof(ThreadContext));
   ThreadContext* ctx = &threads[threadCount - 1];
+  memset(ctx, 0x00, sizeof(ThreadContext));
   TransferContext(ctx, false); //FIXME: Find safe defaults instead?!
   ctx->eip = eip;
   ctx->esp = esp;
