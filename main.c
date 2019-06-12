@@ -1400,17 +1400,45 @@ HACKY_IMPORT_BEGIN(ExitThread)
   esp += 1 * 4;
 HACKY_IMPORT_END()
 
+enum {
+  API(IDI_APPLICATION) = 0x7F00
+};
+
+static const char* IconName(Address address) {
+
+  // If this is a pointer (high-order word isn't zero), the string is in memory
+  if ((address & 0xFFFF0000) != 0) {
+    return (const char*)Memory(address);
+  }
+
+  // If this isn't a pointer, the low-order word is a resource identifier
+  uint16_t resource_id = address & 0xFFFF;
+  const char* s;
+  switch(resource_id) {
+  case API(IDI_APPLICATION):
+    s = "<IDI_APPLICATION>";
+    break;
+  default:
+    printf("Unknown icon-name 0x%04X\n", resource_id);
+    s = "<unknown>";
+    assert(false);
+    break;
+  }
+
+  return s;
+}
+
 // Window creation function
 HACKY_IMPORT_BEGIN(LoadIconA)
   hacky_printf("hInstance 0x%" PRIX32 "\n", stack[1]);
-  hacky_printf("lpIconName 0x%" PRIX32 " ('%s')\n", stack[2], (char*)Memory(stack[2]));
+  hacky_printf("lpIconName 0x%" PRIX32 " ('%s')\n", stack[2], IconName(stack[2]));
   eax = 0; // NULL, pretend we failed
   esp += 2 * 4;
 HACKY_IMPORT_END()
 
 HACKY_IMPORT_BEGIN(LoadCursorA)
   hacky_printf("hInstance 0x%" PRIX32 "\n", stack[1]);
-  hacky_printf("lpCursorName 0x%" PRIX32 " ('%s')\n", stack[2], (char*)Memory(stack[2]));
+  hacky_printf("lpCursorName 0x%" PRIX32 " ('%s')\n", stack[2], IconName(stack[2]));
   eax = 0; // NULL, pretend we failed
   esp += 2 * 4;
 HACKY_IMPORT_END()
