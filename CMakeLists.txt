@@ -24,7 +24,6 @@ endif()
 include_directories(SYSTEM
   ${LIBUNICORN_INCLUDE_DIR}
   ${OPENGL_INCLUDE_DIR}
-  ${GLEW_INCLUDE_DIRS}
   ${SDL2_INCLUDE_DIR}
   ${OPENAL_INCLUDE_DIR}
 )
@@ -96,7 +95,7 @@ endif()
 
 target_link_libraries(openswe1r
   ${OPENGL_LIBRARIES}
-  ${GLEW_LIBRARIES}
+  GLEW::GLEW
   ${SDL2_LIBRARY}
   ${OPENAL_LIBRARY}
 )
