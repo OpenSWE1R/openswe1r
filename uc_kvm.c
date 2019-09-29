@@ -4,28 +4,23 @@
 
 #include <unicorn/unicorn.h>
 
-#include <stdlib.h>
 #include <assert.h>
-#include <inttypes.h>
-#include <stdio.h>
-#include <stdlib.h>
-#include <unistd.h>
-#include <sys/types.h>
-#include <sys/stat.h>
+#include <errno.h>
 #include <fcntl.h>
-#include <sys/mman.h>
+#include <inttypes.h>
 #include <linux/kvm.h>
 #include <malloc.h>
-#include <assert.h>
-#include <stdint.h>
-#include <stropts.h>
-#include <unistd.h>
-#include <signal.h>
-#include <stdlib.h>
-#include <assert.h>
 #include <pthread.h>
-#include <errno.h>
+#include <signal.h>
+#include <stdint.h>
+#include <stdio.h>
+#include <stdlib.h>
 #include <string.h>
+#include <sys/ioctl.h>
+#include <sys/mman.h>
+#include <sys/stat.h>
+#include <sys/types.h>
+#include <unistd.h>
 
 typedef struct _cbe {
   struct _cbe* next;
