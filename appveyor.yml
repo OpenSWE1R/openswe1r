@@ -5,7 +5,6 @@ version: '{build}'
 
 cache:
   - C:\tools\vcpkg\installed\
-  - C:\projects\unicorn\mingw-w64-x86_64-unicorn-1.0.1-1-any.pkg.tar.xz
 
 os: Visual Studio 2017 Preview
 
@@ -28,20 +27,7 @@ install:
   - ps: |
         if ($env:BUILD_TYPE -eq 'mingw') {
           # redirect err to null to prevent warnings from becoming errors
-          C:\msys64\usr\bin\bash -lc "pacman --noconfirm -S mingw-w64-x86_64-SDL2 mingw-w64-x86_64-glew mingw-w64-x86_64-openal mingw-w64-x86_64-enet 2>&1"
-          # install unicorn from source
-          if (Test-Path C:\projects\unicorn\mingw-w64-x86_64-unicorn-1.0.1-1-any.pkg.tar.xz) {
-            C:\msys64\usr\bin\bash -lc "pacman --noconfirm -U C:/projects/unicorn/mingw-w64-x86_64-unicorn-1.0.1-1-any.pkg.tar.xz 2>&1"
-          } else {
-            pushd C:\projects
-            mkdir unicorn
-            cd unicorn
-            Start-FileDownload 'https://raw.githubusercontent.com/Alexpux/MINGW-packages/master/mingw-w64-unicorn/PKGBUILD'
-            C:\msys64\usr\bin\bash -lc "MINGW_INSTALLS=mingw64 makepkg-mingw -sLf -i --noconfirm  2>&1"
-            popd
-          }
-          # stick to cmake 3.9.6 since on lower versions it could happen that cmake generates a Makefile that links against gcc_eh
-          C:\msys64\usr\bin\bash -lc "pacman --noconfirm -U http://repo.msys2.org/mingw/x86_64/mingw-w64-x86_64-cmake-3.9.6-1-any.pkg.tar.xz 2>&1"
+          C:\msys64\usr\bin\bash -lc "pacman --noconfirm -S mingw-w64-x86_64-cmake mingw-w64-x86_64-SDL2 mingw-w64-x86_64-unicorn mingw-w64-x86_64-glew mingw-w64-x86_64-openal mingw-w64-x86_64-enet 2>&1"
         } else {
           vcpkg install unicorn sdl2 glew openal-soft enet
         }
