@@ -33,6 +33,7 @@ add_executable(openswe1r
   emulation.c
   export.c
   shader.c
+  alloc.c
 
   dll/kernel32.c
 

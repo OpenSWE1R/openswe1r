@@ -906,8 +906,17 @@ HACKY_IMPORT_BEGIN(wsprintfA)
   printf("Out: '%s'\n", out);
 HACKY_IMPORT_END()
 
-FILE* handles[10000];
-uint32_t handle_index = 1;
+static FILE* file_handles[16] = {0};
+
+static unsigned int find_free_file_handle() {
+  for(unsigned int i = 0; i < ARRAY_SIZE(file_handles); i++) {
+    if (file_handles[i] == NULL) {
+      return i;
+    }
+  }
+  assert(false);
+  return (unsigned int)-1;
+}
 
 HACKY_IMPORT_BEGIN(CreateFileA)
   const char* lpFileName = (char*)Memory(stack[1]);
@@ -933,10 +942,10 @@ HACKY_IMPORT_BEGIN(CreateFileA)
 
     FILE* f = fopen(path, is_write ? (stack[5] == 4 ? "ab" : "wb") : "rb");
     if (f != NULL) {
+      unsigned int handle_index = find_free_file_handle();
       printf("File handle is 0x%" PRIX32 "\n", handle_index);
-      handles[handle_index] = f;
+      file_handles[handle_index] = f;
       eax = handle_index;
-      handle_index++;
     } else {
       printf("Failed to open file ('%s' as '%s')\n", lpFileName, path);
       eax = 0xFFFFFFFF;
@@ -954,7 +963,7 @@ HACKY_IMPORT_BEGIN(WriteFile)
   hacky_printf("nNumberOfBytesToWrite 0x%" PRIX32 "\n", stack[3]);
   hacky_printf("lpNumberOfBytesWritten 0x%" PRIX32 "\n", stack[4]);
   hacky_printf("lpOverlapped 0x%" PRIX32 "\n", stack[5]);
-  *(uint32_t*)Memory(stack[4]) = fwrite(Memory(stack[2]), 1, stack[3], handles[stack[1]]);
+  *(uint32_t*)Memory(stack[4]) = fwrite(Memory(stack[2]), 1, stack[3], file_handles[stack[1]]);
   eax = 1; // nonzero if succeeds
   esp += 5 * 4;
 HACKY_IMPORT_END()
@@ -963,6 +972,11 @@ HACKY_IMPORT_BEGIN(HeapFree)
   hacky_printf("hHeap 0x%" PRIX32 "\n", stack[1]);
   hacky_printf("dwFlags 0x%" PRIX32 "\n", stack[2]);
   hacky_printf("lpMem 0x%" PRIX32 "\n", stack[3]);
+
+  assert(stack[2] == 0x0);
+
+  Free(stack[3]);
+
   eax = 1; // nonzero if succeeds
   esp += 3 * 4;
 HACKY_IMPORT_END()
@@ -974,7 +988,9 @@ HACKY_IMPORT_BEGIN(CloseHandle)
   } else if (stack[1] == 5551337) { // Thread handle..
     eax = 1; // nonzero if succeeds
   } else {
-    eax = fclose(handles[stack[1]]) ? 0 : 1; // nonzero if succeeds
+    unsigned int handle_index = stack[1];
+    eax = fclose(file_handles[handle_index]) ? 0 : 1; // nonzero if succeeds
+    file_handles[handle_index] = NULL;
   }
   esp += 1 * 4;
 HACKY_IMPORT_END()
@@ -1055,7 +1071,7 @@ HACKY_IMPORT_BEGIN(DirectDrawCreate)
   hacky_printf("lpGUID 0x%" PRIX32 "\n", stack[1]);
   hacky_printf("lplpDD 0x%" PRIX32 "\n", stack[2]);
   hacky_printf("pUnkOuter 0x%" PRIX32 "\n", stack[3]);
-  *(Address*)Memory(stack[2]) = CreateInterface("IDirectDraw4", 200);
+  *(Address*)Memory(stack[2]) = CreateInterface("IDirectDraw4", 30);
   eax = 0; // DD_OK
   esp += 3 * 4;
 HACKY_IMPORT_END()
@@ -1097,7 +1113,7 @@ HACKY_IMPORT_BEGIN(ReadFile)
   hacky_printf("nNumberOfBytesToRead 0x%" PRIX32 "\n", stack[3]);
   hacky_printf("lpNumberOfBytesRead 0x%" PRIX32 "\n", stack[4]);
   hacky_printf("lpOverlapped 0x%" PRIX32 "\n", stack[5]);
-  *(uint32_t*)Memory(stack[4]) = fread(Memory(stack[2]), 1, stack[3], handles[stack[1]]);
+  *(uint32_t*)Memory(stack[4]) = fread(Memory(stack[2]), 1, stack[3], file_handles[stack[1]]);
   eax = 1; // nonzero if succeeds
   esp += 5 * 4;
 HACKY_IMPORT_END()
@@ -1171,8 +1187,8 @@ HACKY_IMPORT_BEGIN(SetFilePointer)
   hacky_printf("dwMoveMethod 0x%" PRIX32 "\n", stack[4]);
   int moveMethods[] = { SEEK_SET, SEEK_CUR, SEEK_END };
   assert(stack[4] < 3);
-  fseek(handles[stack[1]], stack[2], moveMethods[stack[4]]);
-  eax = ftell(handles[stack[1]]);
+  fseek(file_handles[stack[1]], stack[2], moveMethods[stack[4]]);
+  eax = ftell(file_handles[stack[1]]);
   //FIXME: Higher word
   esp += 4 * 4;
 HACKY_IMPORT_END()
@@ -1934,7 +1950,7 @@ HACKY_COM_BEGIN(IDirectDraw4, 0)
     assert(false);
   }
 
-  *(Address*)Memory(stack[3]) = CreateInterface(name, 200);
+  *(Address*)Memory(stack[3]) = CreateInterface(name, 30);
   eax = 0; // FIXME: No idea what this expects to return..
   esp += 3 * 4;
 HACKY_COM_END()
@@ -1953,7 +1969,7 @@ HACKY_COM_BEGIN(IDirectDraw4, 5)
   hacky_printf("b 0x%" PRIX32 "\n", stack[3]);
   hacky_printf("c 0x%" PRIX32 "\n", stack[4]);
   hacky_printf("d 0x%" PRIX32 "\n", stack[5]);
-  *(Address*)Memory(stack[4]) = CreateInterface("IDirectDrawPalette", 200);
+  *(Address*)Memory(stack[4]) = CreateInterface("IDirectDrawPalette", 10);
   eax = 0; // FIXME: No idea what this expects to return..
   esp += 5 * 4;
 HACKY_COM_END()
@@ -2006,7 +2022,7 @@ enum {
     printf("GL handle is %d\n", texture->handle);
   } else {
     //FIXME: only added to catch bugs, null pointer should work
-    surface->texture = CreateInterface("invalid", 200);
+    surface->texture = CreateInterface("invalid", 50);
 
     //FIXME: WTF is this shit?!
     API(Direct3DTexture2)* texture = (API(Direct3DTexture2)*)Memory(surface->texture);
@@ -3563,7 +3579,7 @@ HACKY_COM_BEGIN(IDirectInputA, 3)
   hacky_printf("rguid 0x%" PRIX32 "\n", stack[2]);
   hacky_printf("lpIDD 0x%" PRIX32 "\n", stack[3]);
   hacky_printf("pUnkOuter 0x%" PRIX32 "\n", stack[4]);
-  *(Address*)Memory(stack[3]) = CreateInterface("IDirectInputDeviceA", 200);
+  *(Address*)Memory(stack[3]) = CreateInterface("IDirectInputDeviceA", 20);
   eax = 0; // HRESULT -> non-negative means success
   esp += 4 * 4;
 HACKY_COM_END()

@@ -14,6 +14,8 @@
 #  include <stdlib.h>
 #endif
 
+#define ARRAY_SIZE(x) (sizeof(x) / sizeof(x[0]))
+
 static bool IsZero(const void* data, size_t size) {
   uint8_t* bytes = (uint8_t*)data;
   for(size_t i = 0; i < size; i++) {
